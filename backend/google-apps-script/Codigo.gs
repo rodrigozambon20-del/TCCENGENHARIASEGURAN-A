@@ -1,15 +1,16 @@
 /**
  * PSIKE — Backend em Google Apps Script + Google Sheets
  * ---------------------------------------------------------------
- * Suporta dois módulos da plataforma, cada um em sua própria aba
+ * Suporta três módulos da plataforma, cada um em sua própria aba
  * dentro da mesma planilha:
  *   - psico  -> Módulo 1: Riscos psicossociais (NR-1)
- *   - apr    -> Módulo 2: Permissão de Trabalho / APR digital (NR-33/35/12)
+ *   - apr    -> Módulo 2: Permissão de Trabalho / APR digital (NR-10/35)
+ *   - aep    -> Módulo 3: Análise Ergonômica Preliminar (NR-17)
  *
  * Este arquivo já está configurado para a planilha:
  * ID: 1wM3I40onjQz0vNHc40SIgMNrPc7KZzmiHW_IKbiwJv4
  *
- * SE VOCÊ JÁ TINHA IMPLANTADO A VERSÃO ANTERIOR (só com o Módulo 1):
+ * SE VOCÊ JÁ TINHA IMPLANTADO UMA VERSÃO ANTERIOR (com menos módulos):
  * não precisa criar uma implantação nova. Substitua todo o conteúdo
  * do arquivo Código.gs por este aqui, salve, e vá em
  * Implantar > Gerenciar implantações > ícone de lápis > Nova versão.
@@ -28,6 +29,12 @@ const APR_HEADERS = [
   "checklist_json", "geolat", "geolng", "assinante", "liberado"
 ];
 
+const AEP_SHEET_NAME = "aep_registros";
+const AEP_HEADERS = [
+  "timestamp", "setor", "funcao", "posto", "avaliador",
+  "itens_json", "blocos_json", "observacoes", "conclusao"
+];
+
 function getSheetGeneric_(name, headers) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet = ss.getSheetByName(name);
@@ -40,6 +47,7 @@ function getSheetGeneric_(name, headers) {
 }
 function getPsicoSheet_() { return getSheetGeneric_(PSICO_SHEET_NAME, PSICO_HEADERS); }
 function getAprSheet_() { return getSheetGeneric_(APR_SHEET_NAME, APR_HEADERS); }
+function getAepSheet_() { return getSheetGeneric_(AEP_SHEET_NAME, AEP_HEADERS); }
 
 function jsonResponse_(obj) {
   return ContentService
@@ -51,6 +59,7 @@ function jsonResponse_(obj) {
  * GET ?action=ping
  * GET ?module=psico&action=list
  * GET ?module=apr&action=list
+ * GET ?module=aep&action=list
  */
 function doGet(e) {
   const action = e.parameter.action || "list";
@@ -99,11 +108,36 @@ function doGet(e) {
     return jsonResponse_({ ok: true, records });
   }
 
+  if (action === "list" && module === "aep") {
+    const sheet = getAepSheet_();
+    const values = sheet.getDataRange().getValues();
+    if (values.length <= 1) return jsonResponse_({ ok: true, records: [] });
+    const [header, ...rows] = values;
+    const records = rows.map(row => {
+      let itens = {};
+      let blocos = [];
+      try { itens = JSON.parse(row[5] || "{}"); } catch (err) { itens = {}; }
+      try { blocos = JSON.parse(row[6] || "[]"); } catch (err) { blocos = []; }
+      return {
+        ts: row[0],
+        setor: row[1],
+        funcao: row[2],
+        posto: row[3],
+        avaliador: row[4],
+        itens: itens,
+        blocos: blocos,
+        observacoes: row[7],
+        conclusao: row[8],
+      };
+    });
+    return jsonResponse_({ ok: true, records });
+  }
+
   return jsonResponse_({ ok: false, error: "ação/módulo desconhecido" });
 }
 
 /**
- * POST body JSON, campo "module": "psico" | "apr"
+ * POST body JSON, campo "module": "psico" | "apr" | "aep"
  *
  * module=psico, action=submit  -> { setor, answers: {0:5,1:3,...} }
  * module=psico, action=reset
@@ -112,6 +146,11 @@ function doGet(e) {
  *                                    checklist:[{item,ok}], geolat, geolng,
  *                                    assinante, liberado }
  * module=apr,   action=reset
+ *
+ * module=aep,   action=submit  -> { setor, funcao, posto, avaliador,
+ *                                    itens:{0:1,1:2,...}, blocos:[{...}],
+ *                                    observacoes, conclusao }
+ * module=aep,   action=reset
  */
 function doPost(e) {
   let body;
@@ -163,6 +202,32 @@ function doPost(e) {
         body.geolng || "",
         body.assinante || "",
         body.liberado ? "SIM" : "NÃO",
+      ];
+      sheet.appendRow(row);
+      return jsonResponse_({ ok: true });
+    }
+  }
+
+  if (module === "aep") {
+    const sheet = getAepSheet_();
+
+    if (body.action === "reset") {
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
+      return jsonResponse_({ ok: true, cleared: true });
+    }
+
+    if (body.action === "submit") {
+      const row = [
+        new Date().toISOString(),
+        body.setor || "Não informado",
+        body.funcao || "",
+        body.posto || "",
+        body.avaliador || "",
+        JSON.stringify(body.itens || {}),
+        JSON.stringify(body.blocos || []),
+        body.observacoes || "",
+        body.conclusao || "",
       ];
       sheet.appendRow(row);
       return jsonResponse_({ ok: true });

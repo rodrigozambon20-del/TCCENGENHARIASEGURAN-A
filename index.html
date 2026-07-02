@@ -206,13 +206,14 @@
     <div>
       <div class="name">Psike</div>
     </div>
-    <div class="tag">MÓDULOS 1 E 2 · PSICOSSOCIAL + APR DIGITAL</div>
+    <div class="tag">MÓDULOS 1 A 3 · PSICOSSOCIAL + APR + ERGONOMIA</div>
   </div>
   <nav class="tabs" id="tabs">
     <button data-view="diagnostico" class="active">Sobre</button>
     <button data-view="formulario">Responder avaliação</button>
     <button data-view="painel">Painel</button>
     <button data-view="apr">APR de campo</button>
+    <button data-view="aep">Ergonomia (AEP)</button>
     <button data-view="roadmap">Plataforma</button>
     <button data-view="config">Configurações</button>
   </nav>
@@ -342,13 +343,13 @@
         <span class="mod-status status-live">● em uso</span>
         <div class="mod-num">MÓDULO 02</div>
         <div class="mod-title">APR / Permissão de Trabalho digital</div>
-        <div class="mod-desc">NR-33 · NR-35 · NR-12. Preenchimento em campo com assinatura digital, geolocalização e bloqueio automático sem checklist completo.</div>
+        <div class="mod-desc">NR-10 · NR-35. Permissão de trabalho para serviços em redes de distribuição de energia: desenergização, linha viva/SEP e trabalho em altura, com assinatura digital, geolocalização e bloqueio automático sem checklist completo.</div>
       </div>
-      <div class="mod-card">
-        <span class="mod-status status-dev">em desenvolvimento</span>
+      <div class="mod-card live">
+        <span class="mod-status status-live">● em uso</span>
         <div class="mod-num">MÓDULO 03</div>
         <div class="mod-title">Análise Ergonômica (AEP/AET)</div>
-        <div class="mod-desc">NR-17. Formulário estruturado e geração automatizada de laudo — ponto de partida metodológico da própria avaliação psicossocial.</div>
+        <div class="mod-desc">NR-17 · Portaria MTE 423/2021. Avaliação preliminar estruturada em cinco blocos de fatores, classificação automática e parecer com indicação de AET quando necessário.</div>
       </div>
       <div class="mod-card">
         <span class="mod-status status-dev">em desenvolvimento</span>
@@ -384,9 +385,9 @@
   </section>
   <!-- ============ APR DE CAMPO ============ -->
   <section class="view" id="view-apr">
-    <div class="eyebrow">Módulo 2 · NR-33 / NR-35 / NR-12</div>
+    <div class="eyebrow">Módulo 2 · NR-10 / NR-35</div>
     <h1 class="page-title">Permissão de Trabalho digital</h1>
-    <p class="lede">Preencha o checklist, capture a localização e assine para liberar a atividade. Nada é liberado sem o checklist completo.</p>
+    <p class="lede">APR/PT para serviços em redes de distribuição de energia elétrica. Preencha o checklist, capture a localização e assine para liberar a atividade. Nada é liberado sem o checklist completo.</p>
 
     <div class="grid2">
       <div class="card">
@@ -394,9 +395,9 @@
         <div class="meta-row">
           <select id="apr-tipo" onchange="renderChecklist()">
             <option value="">Tipo de atividade</option>
-            <option value="NR-33 · Espaço confinado">NR-33 · Espaço confinado</option>
-            <option value="NR-35 · Trabalho em altura">NR-35 · Trabalho em altura</option>
-            <option value="NR-12 · Máquinas e equipamentos">NR-12 · Máquinas e equipamentos</option>
+            <option value="NR-10 · Rede desenergizada (linha morta)">NR-10 · Rede desenergizada (linha morta)</option>
+            <option value="NR-10 · Rede energizada / SEP (linha viva)">NR-10 · Rede energizada / SEP (linha viva)</option>
+            <option value="NR-35 · Trabalho em altura (postes e estruturas)">NR-35 · Trabalho em altura (postes e estruturas)</option>
           </select>
         </div>
         <div class="meta-row">
@@ -428,6 +429,62 @@
     <div class="card" style="margin-top:20px;">
       <div class="eyebrow">Últimas liberações registradas</div>
       <div id="aprList" style="font-size:13.5px; color:var(--slate);">Carregando...</div>
+    </div>
+  </section>
+
+  <!-- ============ AEP (ERGONOMIA) ============ -->
+  <section class="view" id="view-aep">
+    <div class="eyebrow">Módulo 3 · NR-17 · Portaria MTE 423/2021</div>
+    <h1 class="page-title">Análise Ergonômica Preliminar (AEP)</h1>
+    <p class="lede">Avalie o posto de trabalho em cinco blocos de fatores ergonômicos previstos na NR-17. Ao final, o sistema classifica cada bloco e gera o parecer da AEP — indicando, quando for o caso, a necessidade de aprofundamento em AET.</p>
+
+    <div class="card" style="margin-bottom:20px;">
+      <div class="eyebrow">Identificação do posto avaliado</div>
+      <div class="meta-row" style="margin-bottom:14px;">
+        <select id="aep-setor">
+          <option value="">Setor (opcional)</option>
+          <option>Produção / operação</option>
+          <option>Administrativo</option>
+          <option>Manutenção</option>
+          <option>Logística</option>
+          <option>Liderança / gestão</option>
+          <option>Outro</option>
+        </select>
+        <input type="text" id="aep-funcao" placeholder="Função / cargo">
+      </div>
+      <div class="meta-row" style="margin-bottom:0;">
+        <input type="text" id="aep-posto" placeholder="Posto / atividade avaliada">
+        <input type="text" id="aep-avaliador" placeholder="Avaliador responsável">
+      </div>
+    </div>
+
+    <div id="aepQuestions"></div>
+
+    <div class="q-card">
+      <div class="q-dim">Observações do avaliador</div>
+      <textarea id="aep-obs" placeholder="Registre condições observadas, relatos dos trabalhadores, medições disponíveis etc. (opcional)" style="width:100%; min-height:90px; padding:12px 14px; border:1.5px solid var(--line); border-radius:9px; font-family:'Inter',sans-serif; font-size:14px; color:var(--navy); resize:vertical;"></textarea>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; flex-wrap:wrap; gap:10px;">
+      <span id="aepProgress" style="font-size:13px; color:var(--slate);" class="mono">0 / 12 itens avaliados</span>
+      <button class="btn btn-primary" id="aepSubmitBtn" onclick="submitAEP()" disabled>Registrar AEP e gerar parecer</button>
+    </div>
+    <div id="aepMsg" style="margin-top:16px; font-size:14px;"></div>
+
+    <div class="card" id="aepParecerCard" style="margin-top:20px; display:none;">
+      <div class="eyebrow">Resultado por bloco de fatores</div>
+      <div id="aepBlocoList" style="margin-bottom:20px;"></div>
+      <div class="eyebrow">Parecer AEP</div>
+      <p style="font-size:13px; color:var(--slate); margin-top:0;">Gerado automaticamente a partir da avaliação. Revise antes de inserir no PGR ou em documento oficial.</p>
+      <textarea class="iro-out" id="aepParecerText" readonly></textarea>
+      <div class="toolbar">
+        <button class="btn btn-dark" onclick="copyAepParecer()">Copiar texto</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="eyebrow">Últimas AEPs registradas</div>
+      <div id="aepList" style="font-size:13.5px; color:var(--slate);">Carregando...</div>
     </div>
   </section>
 
@@ -577,6 +634,7 @@ function go(view){
   document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   if(view==='painel') renderPainel();
   if(view==='apr') renderAprList();
+  if(view==='aep') renderAepList();
 }
 document.getElementById('tabs').addEventListener('click', e=>{
   if(e.target.tagName==='BUTTON') go(e.target.dataset.view);
@@ -743,28 +801,36 @@ async function resetData(){
 /* ================= MÓDULO 2 — APR / PT digital ================= */
 
 const CHECKLISTS = {
-  "NR-33 · Espaço confinado": [
-    "Espaço identificado e sinalizado",
-    "Atmosfera testada (O2, gases inflamáveis/tóxicos)",
-    "Ventilação/exaustão ativa",
-    "Vigia designado e presente",
-    "Equipamento de resgate disponível",
-    "EPI específico verificado (máscara, tripé, cabo de vida)",
+  "NR-10 · Rede desenergizada (linha morta)": [
+    "Seccionamento realizado",
+    "Impedimento de reenergização (bloqueio e etiquetagem)",
+    "Constatação da ausência de tensão",
+    "Instalação de aterramento temporário com equipotencialização dos condutores dos circuitos",
+    "Proteção dos elementos energizados existentes na zona controlada",
+    "Sinalização de impedimento de reenergização",
+    "Trabalhadores autorizados conforme NR-10",
+    "EPI/EPC isolantes inspecionados",
+    "Ordem de serviço emitida",
   ],
-  "NR-35 · Trabalho em altura": [
+  "NR-10 · Rede energizada / SEP (linha viva)": [
+    "Trabalhadores com curso complementar SEP",
+    "Ordem de serviço específica para o trabalho",
+    "Procedimento de trabalho sob supervisão",
+    "Luvas isolantes de classe adequada à tensão e vestimenta adequada ao risco",
+    "Ferramental e equipamentos isolantes inspecionados",
+    "Distâncias de segurança observadas",
+    "Suspensão do trabalho em condições climáticas adversas (chuva, vento)",
+    "Comunicação estabelecida com o centro de operação",
+  ],
+  "NR-35 · Trabalho em altura (postes e estruturas)": [
     "Análise de risco da atividade revisada",
+    "Integridade do poste/estrutura verificada antes da escalada",
+    "Escada ou cesto aéreo inspecionado",
     "Sistema de ancoragem verificado",
     "Cinto de segurança e talabarte inspecionados",
     "Condições climáticas favoráveis",
-    "Área isolada abaixo do trabalho",
+    "Área isolada e sinalizada abaixo do trabalho",
     "Plano de resgate definido",
-  ],
-  "NR-12 · Máquinas e equipamentos": [
-    "Máquina bloqueada e etiquetada (LOTO)",
-    "Dispositivos de segurança testados",
-    "Zona de perigo isolada",
-    "EPI específico da atividade verificado",
-    "Procedimento operacional revisado com a equipe",
   ],
 };
 
@@ -934,9 +1000,218 @@ async function renderAprList(){
     </div>`).join('');
 }
 
+/* ================= MÓDULO 3 — AEP / Ergonomia (NR-17) ================= */
+
+const AEP_BLOCOS = [
+  { id:"cargas", label:"Levantamento e transporte de cargas" },
+  { id:"mobiliario", label:"Mobiliário e postos de trabalho" },
+  { id:"posturas", label:"Posturas e exigência física" },
+  { id:"organizacao", label:"Organização do trabalho" },
+  { id:"ambiente", label:"Condições ambientais e trabalho com telas" },
+];
+
+const AEP_ITEMS = [
+  { bloco:"cargas", text:"As cargas manuseadas têm peso e formato compatíveis com movimentação segura." },
+  { bloco:"cargas", text:"Há meios auxiliares (carrinhos, dispositivos de içamento) ou apoio de outro trabalhador quando o transporte manual pode comprometer a segurança." },
+  { bloco:"mobiliario", text:"O mobiliário e as superfícies de trabalho permitem alcance e ajuste adequados, sem posições forçadas para operar comandos ou ferramentas." },
+  { bloco:"mobiliario", text:"Assentos, apoios e bancadas estão em bom estado de conservação e são compatíveis com a atividade realizada." },
+  { bloco:"posturas", text:"A atividade pode ser realizada sem posturas forçadas ou extremas (tronco muito inclinado, braços acima dos ombros) por períodos prolongados." },
+  { bloco:"posturas", text:"A exigência de força física da tarefa é compatível com a capacidade dos trabalhadores, sem esforço excessivo." },
+  { bloco:"organizacao", text:"O ritmo de trabalho permite executar as tarefas sem pressão de tempo excessiva." },
+  { bloco:"organizacao", text:"Há pausas suficientes para recuperação ao longo da jornada." },
+  { bloco:"organizacao", text:"As tarefas apresentam variação suficiente para evitar monotonia e repetitividade acentuada." },
+  { bloco:"ambiente", text:"Os níveis de ruído no posto não dificultam a comunicação nem exigem esforço vocal contínuo." },
+  { bloco:"ambiente", text:"A iluminação e as condições de temperatura/ventilação do posto são adequadas à atividade realizada." },
+  { bloco:"ambiente", text:"Quando há trabalho com telas/dispositivos, a posição da tela e dos equipamentos permite trabalhar em postura confortável." },
+];
+
+const AEP_SCALE = [
+  {v:1,l:"Adequado"},
+  {v:2,l:"Requer atenção"},
+  {v:3,l:"Inadequado"},
+];
+
+let aepAnswers = {};
+
+function renderAepQuestions(){
+  const wrap = document.getElementById('aepQuestions');
+  wrap.innerHTML = AEP_ITEMS.map((q,i)=>{
+    const blocoLabel = AEP_BLOCOS.find(b=>b.id===q.bloco).label;
+    return `
+    <div class="q-card">
+      <div class="q-dim">${blocoLabel}</div>
+      <div class="q-text">${i+1}. ${q.text}</div>
+      <div class="scale">
+        ${AEP_SCALE.map(s=>`
+          <label>
+            <input type="radio" name="aep-q${i}" value="${s.v}" onchange="setAepAnswer(${i},${s.v})">
+            <span class="n">${s.v}</span>${s.l}
+          </label>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setAepAnswer(i,v){
+  aepAnswers[i]=v;
+  const n = Object.keys(aepAnswers).length;
+  document.getElementById('aepProgress').textContent = `${n} / ${AEP_ITEMS.length} itens avaliados`;
+  document.getElementById('aepSubmitBtn').disabled = n < AEP_ITEMS.length;
+}
+
+function classifyAepBloco(mean){
+  if(mean > 2.2) return {cls:'high', label:'INADEQUADO'};
+  if(mean >= 1.5) return {cls:'mid', label:'ATENÇÃO'};
+  return {cls:'low', label:'ADEQUADO'};
+}
+
+function computeAepBlocos(){
+  return AEP_BLOCOS.map(b=>{
+    const vals = AEP_ITEMS
+      .map((q,i)=> q.bloco===b.id ? aepAnswers[i] : undefined)
+      .filter(v=>v!==undefined);
+    const mean = vals.length ? vals.reduce((a,c)=>a+c,0)/vals.length : 0;
+    const c = classifyAepBloco(mean);
+    return { id:b.id, label:b.label, media:Number(mean.toFixed(2)), classe:c.cls, resultado:c.label };
+  });
+}
+
+function renderAepBlocoList(blocos){
+  document.getElementById('aepBlocoList').innerHTML = blocos.map(b=>{
+    const pct = (b.media/3*100).toFixed(0);
+    const barColor = b.classe==='high' ? 'var(--risk-high)' : b.classe==='mid' ? 'var(--risk-mid)' : 'var(--risk-low)';
+    return `
+      <div class="dim-row">
+        <div class="dim-name">${b.label}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${barColor};"></div></div>
+        <span class="mono" style="font-size:12.5px; width:40px; text-align:right;">${b.media.toFixed(1)}</span>
+        <div class="dim-badge badge-${b.classe}">${b.resultado}</div>
+      </div>`;
+  }).join('');
+}
+
+function buildAepParecer(meta, blocos, observacoes, precisaAET){
+  const dataStr = new Date().toLocaleDateString('pt-BR');
+  let t = `ANÁLISE ERGONÔMICA PRELIMINAR (AEP) — PARECER\n`;
+  t += `Base normativa: NR-17 e Portaria MTE nº 423/2021, no âmbito do GRO/PGR (NR-1)\n`;
+  t += `Data de geração: ${dataStr}\n\n`;
+  t += `IDENTIFICAÇÃO DO POSTO AVALIADO\n`;
+  t += `Setor: ${meta.setor} · Função: ${meta.funcao}\n`;
+  t += `Posto/atividade: ${meta.posto}\n`;
+  t += `Avaliador responsável: ${meta.avaliador}\n\n`;
+  t += `MÉTODO\n`;
+  t += `Avaliação preliminar estruturada em ${AEP_ITEMS.length} itens, agrupados em ${AEP_BLOCOS.length} blocos de fatores ergonômicos previstos na NR-17, com escala de 3 pontos (1 = Adequado, 2 = Requer atenção, 3 = Inadequado).\n\n`;
+  t += `RESULTADO POR BLOCO DE FATORES\n`;
+  blocos.forEach(b=>{
+    t += `• ${b.label}: média ${b.media.toFixed(2)}/3 — ${b.resultado}.\n`;
+  });
+  if(observacoes){
+    t += `\nOBSERVAÇÕES DO AVALIADOR\n${observacoes}\n`;
+  }
+  t += `\nCONCLUSÃO\n`;
+  if(precisaAET){
+    t += `A avaliação preliminar identificou bloco(s) de fatores classificado(s) como INADEQUADO. Recomenda-se o aprofundamento da avaliação por meio de Análise Ergonômica do Trabalho (AET), conforme a NR-17, priorizando as situações apontadas acima e incorporando as medidas resultantes ao plano de ação do PGR.`;
+  } else {
+    t += `A avaliação preliminar não indicou, neste momento, necessidade de aprofundamento em Análise Ergonômica do Trabalho (AET). Recomenda-se manter o acompanhamento das condições ergonômicas do posto e reavaliar em caso de mudança no processo de trabalho, queixas dos trabalhadores ou nos ciclos de revisão do PGR, conforme NR-17.`;
+  }
+  return t;
+}
+
+async function submitAEP(){
+  const btn = document.getElementById('aepSubmitBtn');
+  btn.disabled = true; btn.textContent = "Registrando...";
+  const meta = {
+    setor: document.getElementById('aep-setor').value || "Não informado",
+    funcao: document.getElementById('aep-funcao').value.trim() || "Não informada",
+    posto: document.getElementById('aep-posto').value.trim() || "Não informado",
+    avaliador: document.getElementById('aep-avaliador').value.trim() || "Não informado",
+  };
+  const observacoes = document.getElementById('aep-obs').value.trim();
+  const blocos = computeAepBlocos();
+  const precisaAET = blocos.some(b=>b.classe==='high');
+  const conclusao = precisaAET
+    ? "Recomenda-se aprofundamento em AET (NR-17)"
+    : "AEP não indicou necessidade de AET";
+  const record = {
+    module: "aep",
+    action: "submit",
+    setor: meta.setor,
+    funcao: meta.funcao,
+    posto: meta.posto,
+    avaliador: meta.avaliador,
+    itens: {...aepAnswers},
+    blocos,
+    observacoes,
+    conclusao,
+    ts: Date.now(),
+  };
+  try{
+    if(CloudStore.active()){
+      const url = getConfiguredSheetsUrl();
+      await fetch(url, {
+        method:"POST",
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify(record),
+      });
+    } else {
+      const key = `aep:${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+      await Store.set(key, JSON.stringify(record), true);
+    }
+    renderAepBlocoList(blocos);
+    document.getElementById('aepParecerText').value = buildAepParecer(meta, blocos, observacoes, precisaAET);
+    document.getElementById('aepParecerCard').style.display = 'block';
+    document.getElementById('aepMsg').innerHTML = '<span style="color:var(--risk-low); font-weight:600;">✓ AEP registrada. Parecer gerado abaixo.</span>';
+    btn.textContent = "Registrar AEP e gerar parecer";
+    renderAepList();
+  }catch(err){
+    document.getElementById('aepMsg').innerHTML = '<span style="color:var(--risk-high);">Falha ao registrar. Tente novamente.</span>';
+    btn.textContent = "Registrar AEP e gerar parecer";
+    btn.disabled = false;
+    console.error(err);
+  }
+}
+
+function copyAepParecer(){
+  const ta = document.getElementById('aepParecerText');
+  ta.select();
+  document.execCommand('copy');
+}
+
+async function renderAepList(){
+  const el = document.getElementById('aepList');
+  let records = [];
+  try{
+    if(CloudStore.active()){
+      const url = getConfiguredSheetsUrl();
+      const res = await fetch(`${url}?module=aep&action=list`);
+      const data = await res.json();
+      records = (data && data.records) ? data.records : [];
+    } else {
+      const res = await Store.list('aep:', true);
+      const keys = res ? res.keys : [];
+      for(const k of (keys||[])){
+        const r = await Store.get(k, true);
+        if(r && r.value) records.push(JSON.parse(r.value));
+      }
+    }
+  }catch(e){ /* ignore */ }
+
+  if(!records.length){
+    el.innerHTML = "Nenhuma AEP registrada ainda.";
+    return;
+  }
+  el.innerHTML = records.slice(-8).reverse().map(r=>`
+    <div style="padding:10px 0; border-bottom:1px solid var(--line);">
+      <strong style="color:var(--navy);">${r.posto || "—"}</strong> · ${r.setor || "—"} / ${r.funcao || "—"}<br>
+      <span class="mono">${r.avaliador || "—"} · ${r.conclusao || "—"}</span>
+    </div>`).join('');
+}
+
 setupSigPad();
 renderQuestions();
+renderAepQuestions();
 renderAprList();
+renderAepList();
 
 function refreshStorageModeNote(){
   const el = document.getElementById('storageModeNote');
