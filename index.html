@@ -206,7 +206,7 @@
     <div>
       <div class="name">Psike</div>
     </div>
-    <div class="tag">MÓDULOS 1 A 3 · PSICOSSOCIAL + APR + ERGONOMIA</div>
+    <div class="tag">PLATAFORMA SST · 4 MÓDULOS · NR-1 / NR-10 / NR-17</div>
   </div>
   <nav class="tabs" id="tabs">
     <button data-view="diagnostico" class="active">Sobre</button>
@@ -214,6 +214,7 @@
     <button data-view="painel">Painel</button>
     <button data-view="apr">APR de campo</button>
     <button data-view="aep">Ergonomia (AEP)</button>
+    <button data-view="acidentes">Acidentes</button>
     <button data-view="roadmap">Plataforma</button>
     <button data-view="config">Configurações</button>
   </nav>
@@ -351,11 +352,11 @@
         <div class="mod-title">Análise Ergonômica (AEP/AET)</div>
         <div class="mod-desc">NR-17 · Portaria MTE 423/2021. Avaliação preliminar estruturada em cinco blocos de fatores, classificação automática e parecer com indicação de AET quando necessário.</div>
       </div>
-      <div class="mod-card">
-        <span class="mod-status status-dev">em desenvolvimento</span>
+      <div class="mod-card live">
+        <span class="mod-status status-live">● em uso</span>
         <div class="mod-num">MÓDULO 04</div>
         <div class="mod-title">Investigação de acidentes e near-miss</div>
-        <div class="mod-desc">NR-1. Registro rápido em campo, árvore de causas e apoio à emissão da CAT — agora obrigatório para toda empresa, não só as com SESMT.</div>
+        <div class="mod-desc">NR-1. Registro rápido de acidentes e quase acidentes em campo, análise de causas em três níveis e indicadores — com apoio ao registro da CAT.</div>
       </div>
     </div>
   </section>
@@ -485,6 +486,84 @@
     <div class="card" style="margin-top:20px;">
       <div class="eyebrow">Últimas AEPs registradas</div>
       <div id="aepList" style="font-size:13.5px; color:var(--slate);">Carregando...</div>
+    </div>
+  </section>
+
+  <!-- ============ ACIDENTES (INVESTIGAÇÃO) ============ -->
+  <section class="view" id="view-acidentes">
+    <div class="eyebrow">Módulo 4 · NR-1</div>
+    <h1 class="page-title">Acidentes e quase acidentes</h1>
+    <p class="lede">Registre rapidamente, ainda em campo, acidentes de trabalho e quase acidentes (near miss). A análise de causas em três níveis apoia a investigação e a definição de ações, alimentando os indicadores de segurança e o registro da CAT.</p>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="v mono" id="acidKpiTotal">0</div><div class="l">ocorrências registradas</div></div>
+      <div class="kpi"><div class="v mono" id="acidKpiNear">0</div><div class="l">quase acidentes</div></div>
+      <div class="kpi"><div class="v mono" id="acidKpiAcid">0</div><div class="l">acidentes (com + sem afastamento)</div></div>
+      <div class="kpi"><div class="v mono" id="acidKpiCat">0</div><div class="l">com CAT emitida</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="eyebrow">Registro da ocorrência</div>
+        <div class="meta-row" style="margin-bottom:14px;">
+          <select id="acid-tipo">
+            <option value="">Tipo de ocorrência</option>
+            <option>Quase acidente (near miss)</option>
+            <option>Acidente sem afastamento</option>
+            <option>Acidente com afastamento</option>
+          </select>
+          <input type="datetime-local" id="acid-data">
+        </div>
+        <div class="meta-row" style="margin-bottom:14px;">
+          <input type="text" id="acid-local" placeholder="Local da ocorrência">
+          <select id="acid-setor">
+            <option value="">Setor (opcional)</option>
+            <option>Produção / operação</option>
+            <option>Administrativo</option>
+            <option>Manutenção</option>
+            <option>Logística</option>
+            <option>Liderança / gestão</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div class="meta-row" style="margin-bottom:14px;">
+          <input type="text" id="acid-atividade" placeholder="Atividade em execução (opcional)">
+        </div>
+        <textarea id="acid-descricao" placeholder="Descrição do que aconteceu (obrigatório)" style="width:100%; min-height:90px; padding:12px 14px; border:1.5px solid var(--line); border-radius:9px; font-family:'Inter',sans-serif; font-size:14px; color:var(--navy); resize:vertical; margin-bottom:14px;"></textarea>
+        <div class="meta-row" style="margin-bottom:0;">
+          <input type="text" id="acid-lesao" placeholder="Lesão / dano (opcional)">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="eyebrow">Análise de causas em três níveis</div>
+        <p style="font-size:13px; color:var(--slate); margin-top:0;">Árvore de causas simplificada. Apenas as causas imediatas são obrigatórias.</p>
+        <textarea id="acid-causas-imediatas" placeholder="Causas imediatas — atos e condições inseguras observadas (obrigatório)" style="width:100%; min-height:70px; padding:12px 14px; border:1.5px solid var(--line); border-radius:9px; font-family:'Inter',sans-serif; font-size:14px; color:var(--navy); resize:vertical; margin-bottom:12px;"></textarea>
+        <textarea id="acid-causas-subjacentes" placeholder="Causas subjacentes — falhas de organização/processo/supervisão (opcional)" style="width:100%; min-height:70px; padding:12px 14px; border:1.5px solid var(--line); border-radius:9px; font-family:'Inter',sans-serif; font-size:14px; color:var(--navy); resize:vertical; margin-bottom:12px;"></textarea>
+        <textarea id="acid-causas-basicas" placeholder="Causas básicas — fatores de gestão e cultura (opcional)" style="width:100%; min-height:70px; padding:12px 14px; border:1.5px solid var(--line); border-radius:9px; font-family:'Inter',sans-serif; font-size:14px; color:var(--navy); resize:vertical; margin-bottom:0;"></textarea>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="eyebrow">Ações e comunicação</div>
+      <textarea id="acid-acoes" placeholder="Ações corretivas / preventivas propostas (opcional)" style="width:100%; min-height:70px; padding:12px 14px; border:1.5px solid var(--line); border-radius:9px; font-family:'Inter',sans-serif; font-size:14px; color:var(--navy); resize:vertical; margin-bottom:14px;"></textarea>
+      <div class="meta-row" style="margin-bottom:0; align-items:center;">
+        <label style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; flex:1; min-width:180px;">
+          <input type="checkbox" id="acid-cat" style="width:18px; height:18px;">
+          CAT emitida
+        </label>
+        <input type="text" id="acid-cat-num" placeholder="Nº da CAT (opcional)">
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:20px;">
+      <button class="btn btn-primary" id="acidSubmitBtn" onclick="submitAcid()" disabled>Registrar ocorrência</button>
+    </div>
+    <div id="acidMsg" style="margin-top:16px; font-size:14px;"></div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="eyebrow">Últimas ocorrências</div>
+      <div id="acidList" style="font-size:13.5px; color:var(--slate);">Carregando...</div>
     </div>
   </section>
 
@@ -635,6 +714,7 @@ function go(view){
   if(view==='painel') renderPainel();
   if(view==='apr') renderAprList();
   if(view==='aep') renderAepList();
+  if(view==='acidentes'){ renderAcidIndicadores(); renderAcidList(); }
 }
 document.getElementById('tabs').addEventListener('click', e=>{
   if(e.target.tagName==='BUTTON') go(e.target.dataset.view);
@@ -1207,11 +1287,158 @@ async function renderAepList(){
     </div>`).join('');
 }
 
+/* ================= MÓDULO 4 — Acidentes e quase acidentes (NR-1) ================= */
+
+function isAcidente_(tipo){
+  return tipo === "Acidente sem afastamento" || tipo === "Acidente com afastamento";
+}
+function catEmitida_(v){
+  return v === true || v === "SIM";
+}
+function formatAcidData_(v){
+  if(!v) return "—";
+  const d = new Date(v);
+  if(isNaN(d.getTime())) return v;
+  return d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function updateAcidSubmitState(){
+  const ready = document.getElementById('acid-tipo').value.trim()!==""
+    && document.getElementById('acid-data').value.trim()!==""
+    && document.getElementById('acid-local').value.trim()!==""
+    && document.getElementById('acid-descricao').value.trim()!==""
+    && document.getElementById('acid-causas-imediatas').value.trim()!=="";
+  document.getElementById('acidSubmitBtn').disabled = !ready;
+}
+["acid-tipo","acid-data","acid-local","acid-descricao","acid-causas-imediatas"].forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener('input', updateAcidSubmitState);
+  el.addEventListener('change', updateAcidSubmitState);
+});
+
+async function fetchAcidRecords(){
+  let records = [];
+  try{
+    if(CloudStore.active()){
+      const url = getConfiguredSheetsUrl();
+      const res = await fetch(`${url}?module=acidentes&action=list`);
+      const data = await res.json();
+      records = (data && data.records) ? data.records : [];
+    } else {
+      const res = await Store.list('acid:', true);
+      const keys = res ? res.keys : [];
+      for(const k of (keys||[])){
+        const r = await Store.get(k, true);
+        if(r && r.value) records.push(JSON.parse(r.value));
+      }
+    }
+  }catch(e){ /* ignore */ }
+  return records;
+}
+
+async function renderAcidIndicadores(){
+  const records = await fetchAcidRecords();
+  let near=0, acid=0, cat=0;
+  records.forEach(r=>{
+    if(r.tipo === "Quase acidente (near miss)") near++;
+    else if(isAcidente_(r.tipo)) acid++;
+    if(catEmitida_(r.cat_emitida)) cat++;
+  });
+  document.getElementById('acidKpiTotal').textContent = records.length;
+  document.getElementById('acidKpiNear').textContent = near;
+  document.getElementById('acidKpiAcid').textContent = acid;
+  document.getElementById('acidKpiCat').textContent = cat;
+}
+
+async function renderAcidList(){
+  const el = document.getElementById('acidList');
+  const records = await fetchAcidRecords();
+  if(!records.length){
+    el.innerHTML = "Nenhuma ocorrência registrada ainda.";
+    return;
+  }
+  el.innerHTML = records.slice(-8).reverse().map(r=>{
+    const tipo = r.tipo || "—";
+    const cls = isAcidente_(tipo) ? 'high' : 'mid';
+    const badge = `<span class="mono badge-${cls}" style="font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px;">${tipo}</span>`;
+    const desc = (r.descricao || "").length > 120 ? (r.descricao.slice(0,120) + "…") : (r.descricao || "—");
+    return `
+    <div style="padding:10px 0; border-bottom:1px solid var(--line);">
+      ${badge} <span class="mono" style="font-size:12.5px;">${formatAcidData_(r.data_ocorrencia)} · ${r.local || "—"}</span><br>
+      <span style="color:var(--navy);">${desc}</span>
+    </div>`;
+  }).join('');
+}
+
+async function submitAcid(){
+  const btn = document.getElementById('acidSubmitBtn');
+  btn.disabled = true; btn.textContent = "Registrando...";
+  const tipo = document.getElementById('acid-tipo').value;
+  const catOn = document.getElementById('acid-cat').checked;
+  const payload = {
+    module: "acidentes",
+    action: "submit",
+    tipo: tipo,
+    data_ocorrencia: document.getElementById('acid-data').value,
+    local: document.getElementById('acid-local').value.trim(),
+    setor: document.getElementById('acid-setor').value || "Não informado",
+    atividade: document.getElementById('acid-atividade').value.trim(),
+    descricao: document.getElementById('acid-descricao').value.trim(),
+    lesao: document.getElementById('acid-lesao').value.trim(),
+    causas_imediatas: document.getElementById('acid-causas-imediatas').value.trim(),
+    causas_subjacentes: document.getElementById('acid-causas-subjacentes').value.trim(),
+    causas_basicas: document.getElementById('acid-causas-basicas').value.trim(),
+    acoes: document.getElementById('acid-acoes').value.trim(),
+    cat_emitida: catOn,
+    cat_numero: document.getElementById('acid-cat-num').value.trim(),
+    ts: Date.now(),
+  };
+  try{
+    if(CloudStore.active()){
+      const url = getConfiguredSheetsUrl();
+      await fetch(url, {
+        method:"POST",
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify(payload),
+      });
+    } else {
+      const key = `acid:${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+      await Store.set(key, JSON.stringify(payload), true);
+    }
+    let msg;
+    if(isAcidente_(tipo)){
+      msg = '<span style="color:var(--risk-low); font-weight:600;">✓ Ocorrência registrada.</span> <span style="color:var(--slate);">Para acidentes de trabalho, a emissão da CAT ao INSS é obrigação legal do empregador — este registro não substitui a CAT.</span>';
+    } else {
+      msg = '<span style="color:var(--risk-low); font-weight:600;">✓ Quase acidente registrado. Obrigado por comunicar.</span>';
+    }
+    document.getElementById('acidMsg').innerHTML = msg;
+    btn.textContent = "Registrar ocorrência";
+    resetAcidForm();
+    renderAcidIndicadores();
+    renderAcidList();
+  }catch(err){
+    document.getElementById('acidMsg').innerHTML = '<span style="color:var(--risk-high);">Falha ao registrar. Tente novamente.</span>';
+    btn.textContent = "Registrar ocorrência";
+    btn.disabled = false;
+    console.error(err);
+  }
+}
+
+function resetAcidForm(){
+  ["acid-tipo","acid-data","acid-local","acid-setor","acid-atividade","acid-descricao","acid-lesao","acid-causas-imediatas","acid-causas-subjacentes","acid-causas-basicas","acid-acoes","acid-cat-num"].forEach(id=>{
+    document.getElementById(id).value = "";
+  });
+  document.getElementById('acid-cat').checked = false;
+  updateAcidSubmitState();
+}
+
 setupSigPad();
 renderQuestions();
 renderAepQuestions();
 renderAprList();
 renderAepList();
+renderAcidIndicadores();
+renderAcidList();
 
 function refreshStorageModeNote(){
   const el = document.getElementById('storageModeNote');
