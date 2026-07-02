@@ -8,18 +8,19 @@ Tema: **gestão digital de riscos psicossociais conforme a NR-1** (Portaria MTE 
 
 | Caminho | Descrição |
 |---|---|
-| `index.html` | Aplicativo completo (frontend autocontido, sem build) — Módulos 1 e 2 |
+| `index.html` | Aplicativo completo (frontend autocontido, sem build) — Módulos 1 a 4 |
 | `backend/google-apps-script/Codigo.gs` | Backend em Google Apps Script (grava numa Google Sheets) |
 | `docs/CONTEXTO_PROJETO.md` | Histórico do projeto: decisões, problemas resolvidos, dívidas técnicas |
+| `docs/tcc/` | Monografia do TCC (`.docx`) e o script `gerar_tcc.py` que a regenera |
 
 ## Módulos
 
 | Módulo | Status | Descrição |
 |---|---|---|
 | 1 — Riscos psicossociais | ✅ em uso | NR-1 / ISO 45003. Questionário de 10 itens em 6 dimensões, classificação automática de risco, painel agregado, texto pronto para o IRO/PGR |
-| 2 — APR / Permissão de Trabalho digital | ✅ em uso | NR-33/35/12. Checklist dinâmico, geolocalização, assinatura digital em canvas, bloqueio de liberação |
-| 3 — Análise Ergonômica (AEP/AET) | 🔜 planejado | NR-17 |
-| 4 — Investigação de acidentes / near-miss | 🔜 planejado | NR-1, árvore de causas, apoio à CAT |
+| 2 — APR / Permissão de Trabalho digital | ✅ em uso | NR-10 / NR-35. Serviços em redes de distribuição de energia: rede desenergizada (desenergização NR-10), rede energizada/SEP e trabalho em altura em postes/estruturas. Checklist dinâmico, geolocalização, assinatura digital, bloqueio de liberação |
+| 3 — Análise Ergonômica Preliminar (AEP) | ✅ em uso | NR-17. 12 itens em 5 blocos de fatores, classificação por bloco e parecer com indicação de AET quando necessário |
+| 4 — Acidentes e quase acidentes | ✅ em uso | NR-1. Registro em campo, análise de causas em três níveis, indicadores e apoio ao registro da CAT |
 
 ## Como rodar
 
