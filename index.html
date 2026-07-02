@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psike · Gestão de Riscos Psicossociais (NR-1)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#16233F;
+    --navy-2:#1F3157;
+    --slate:#5B6576;
+    --paper:#F1F3F6;
+    --card:#FFFFFF;
+    --line:#DDE2E9;
+    --gold:#B4842A;
+    --gold-soft:#F3E7D2;
+    --risk-low:#2E7D63;
+    --risk-low-bg:#E4F2ED;
+    --risk-mid:#B4842A;
+    --risk-mid-bg:#F8EFDD;
+    --risk-high:#AC3B32;
+    --risk-high-bg:#F8E6E3;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--navy);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .display{font-family:'Fraunces',serif;}
+
+  /* ---------- top nav ---------- */
+  header.topnav{
+    position:sticky; top:0; z-index:40;
+    background:var(--navy);
+    color:#fff;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px; height:64px;
+    border-bottom:3px solid var(--gold);
+  }
+  .brand{display:flex; align-items:baseline; gap:10px;}
+  .brand .mark{
+    width:30px;height:30px;border-radius:8px;
+    background:linear-gradient(135deg,var(--gold),#8f6318);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif; font-weight:700; color:var(--navy); font-size:15px;
+  }
+  .brand .name{font-family:'Fraunces',serif; font-size:20px; font-weight:600; letter-spacing:.2px;}
+  .brand .tag{font-size:11px; color:#C7CEDB; font-family:'IBM Plex Mono',monospace; letter-spacing:.06em;}
+  nav.tabs{display:flex; gap:4px;}
+  nav.tabs button{
+    background:transparent; border:none; color:#C7CEDB; cursor:pointer;
+    padding:10px 16px; font-size:14px; font-family:'Inter',sans-serif; font-weight:500;
+    border-radius:8px; transition:.15s;
+  }
+  nav.tabs button:hover{background:rgba(255,255,255,.08); color:#fff;}
+  nav.tabs button.active{background:#fff; color:var(--navy);}
+
+  main{max-width:1080px; margin:0 auto; padding:40px 24px 100px;}
+  section.view{display:none;}
+  section.view.active{display:block; animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--gold); margin-bottom:10px; font-weight:500;
+  }
+  h1.page-title{font-family:'Fraunces',serif; font-size:40px; font-weight:600; margin:0 0 12px; line-height:1.1;}
+  p.lede{font-size:16.5px; color:var(--slate); max-width:640px; line-height:1.6; margin:0 0 32px;}
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:28px;
+  }
+  .grid2{display:grid; grid-template-columns:1.1fr .9fr; gap:24px;}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr;}}
+
+  /* ---------- hero / diagnostico ---------- */
+  .hero-card{
+    background:var(--navy); color:#fff; border-radius:20px; padding:44px;
+    position:relative; overflow:hidden;
+  }
+  .hero-card::before{
+    content:""; position:absolute; right:-60px; top:-60px; width:280px; height:280px;
+    border-radius:50%; background:radial-gradient(circle,rgba(180,132,42,.35),transparent 70%);
+  }
+  .hero-card h1{color:#fff;}
+  .hero-card p.lede{color:#C7CEDB;}
+  .stat-row{display:flex; gap:36px; margin-top:28px; flex-wrap:wrap;}
+  .stat{display:flex; flex-direction:column;}
+  .stat .num{font-family:'Fraunces',serif; font-size:30px; font-weight:600; color:var(--gold);}
+  .stat .lbl{font-size:12px; color:#AEB8C9; margin-top:2px; max-width:160px;}
+
+  .law-box{
+    border-left:3px solid var(--gold); background:var(--gold-soft); padding:16px 20px;
+    border-radius:0 10px 10px 0; font-size:13.5px; color:#5A4213; line-height:1.6; margin-top:24px;
+  }
+
+  .steps{display:flex; flex-direction:column; gap:0; margin-top:8px;}
+  .step{display:flex; gap:16px; padding:18px 0; border-bottom:1px solid var(--line);}
+  .step:last-child{border-bottom:none;}
+  .step .idx{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--gold); font-weight:600;
+    width:26px; flex-shrink:0; padding-top:2px;
+  }
+  .step .txt strong{display:block; font-size:14.5px; margin-bottom:2px;}
+  .step .txt span{font-size:13px; color:var(--slate);}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer; border:none;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14.5px;
+    padding:13px 24px; border-radius:9px; transition:.15s;
+  }
+  .btn-primary{background:var(--gold); color:var(--navy);}
+  .btn-primary:hover{background:#c6942f;}
+  .btn-ghost{background:transparent; color:#fff; border:1px solid rgba(255,255,255,.35);}
+  .btn-ghost:hover{border-color:#fff;}
+  .btn-dark{background:var(--navy); color:#fff;}
+  .btn-dark:hover{background:var(--navy-2);}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+
+  /* ---------- formulario ---------- */
+  .q-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:24px; margin-bottom:14px;}
+  .q-dim{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.08em; color:var(--gold); text-transform:uppercase; margin-bottom:8px;}
+  .q-text{font-size:16px; line-height:1.45; margin-bottom:18px; font-weight:500;}
+  .scale{display:flex; gap:8px; flex-wrap:wrap;}
+  .scale label{
+    flex:1; min-width:90px; text-align:center; border:1.5px solid var(--line); border-radius:9px;
+    padding:11px 6px; cursor:pointer; font-size:12.5px; color:var(--slate); transition:.12s; user-select:none;
+  }
+  .scale input{display:none;}
+  .scale input:checked + span{display:block;}
+  .scale label:has(input:checked){background:var(--navy); border-color:var(--navy); color:#fff; font-weight:600;}
+  .scale .n{font-family:'IBM Plex Mono',monospace; font-weight:700; display:block; font-size:15px; margin-bottom:2px;}
+
+  .meta-row{display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap;}
+  .meta-row input, .meta-row select{
+    flex:1; min-width:180px; padding:12px 14px; border:1.5px solid var(--line); border-radius:9px;
+    font-family:'Inter',sans-serif; font-size:14px; background:#fff; color:var(--navy);
+  }
+  .anon-note{font-size:12.5px; color:var(--slate); background:var(--paper); padding:10px 14px; border-radius:8px; margin-bottom:24px;}
+
+  /* ---------- painel ---------- */
+  .kpi-row{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px;}
+  @media(max-width:760px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+  .kpi{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 20px;}
+  .kpi .v{font-family:'Fraunces',serif; font-size:28px; font-weight:600;}
+  .kpi .l{font-size:12px; color:var(--slate); margin-top:2px;}
+
+  .dim-row{display:flex; align-items:center; gap:14px; padding:13px 0; border-bottom:1px solid var(--line);}
+  .dim-row:last-child{border:none;}
+  .dim-name{width:230px; font-size:13.5px; font-weight:500; flex-shrink:0;}
+  .bar-track{flex:1; height:10px; background:var(--paper); border-radius:6px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:6px;}
+  .dim-badge{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; padding:4px 10px;
+    border-radius:20px; width:70px; text-align:center; flex-shrink:0;
+  }
+  .badge-low{background:var(--risk-low-bg); color:var(--risk-low);}
+  .badge-mid{background:var(--risk-mid-bg); color:var(--risk-mid);}
+  .badge-high{background:var(--risk-high-bg); color:var(--risk-high);}
+
+  .empty{
+    text-align:center; padding:60px 20px; color:var(--slate);
+  }
+  .empty .icon{font-size:34px; margin-bottom:10px;}
+
+  textarea.iro-out{
+    width:100%; min-height:220px; border:1.5px solid var(--line); border-radius:10px;
+    padding:16px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; line-height:1.6;
+    background:#FBFBFA; color:var(--navy); resize:vertical;
+  }
+  .toolbar{display:flex; gap:10px; margin-top:14px;}
+
+  /* ---------- roadmap ---------- */
+  .mod-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-top:24px;}
+  @media(max-width:760px){.mod-grid{grid-template-columns:1fr;}}
+  .mod-card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:24px; position:relative;}
+  .mod-card.live{border-color:var(--risk-low); background:linear-gradient(180deg,#fff,var(--risk-low-bg) 220%);}
+  .mod-num{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--gold); font-weight:600; letter-spacing:.08em;}
+  .mod-title{font-family:'Fraunces',serif; font-size:20px; font-weight:600; margin:6px 0 8px;}
+  .mod-desc{font-size:13.5px; color:var(--slate); line-height:1.55; margin-bottom:14px;}
+  .mod-status{
+    font-size:11px; font-weight:600; padding:4px 10px; border-radius:20px; display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .status-live{background:var(--risk-low-bg); color:var(--risk-low);}
+  .status-dev{background:var(--gold-soft); color:#8f6318;}
+
+  footer.appfoot{
+    text-align:center; padding:30px; color:var(--slate); font-size:12px; border-top:1px solid var(--line); margin-top:40px;
+  }
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="brand">
+    <div class="mark">P</div>
+    <div>
+      <div class="name">Psike</div>
+    </div>
+    <div class="tag">MÓDULOS 1 E 2 · PSICOSSOCIAL + APR DIGITAL</div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-view="diagnostico" class="active">Sobre</button>
+    <button data-view="formulario">Responder avaliação</button>
+    <button data-view="painel">Painel</button>
+    <button data-view="apr">APR de campo</button>
+    <button data-view="roadmap">Plataforma</button>
+    <button data-view="config">Configurações</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============ DIAGNÓSTICO ============ -->
+  <section class="view active" id="view-diagnostico">
+    <div class="hero-card">
+      <div class="eyebrow" style="color:var(--gold)">NR-1 · Portaria MTE 1.419/2024</div>
+      <h1 class="page-title">Riscos psicossociais, sistematizados —<br>não mais em planilha avulsa.</h1>
+      <p class="lede">Desde 26 de maio de 2026, todo empregador CLT precisa identificar, avaliar e documentar fatores de risco psicossocial dentro do PGR. O Psike aplica o instrumento, classifica o risco por dimensão e gera o texto pronto para o seu Inventário de Riscos Ocupacionais.</p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="go('formulario')">Aplicar avaliação →</button>
+        <button class="btn btn-ghost" onclick="go('painel')">Ver painel de resultados</button>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><span class="num mono">4,5M</span><span class="lbl">estabelecimentos CLT sujeitos à exigência (RAIS)</span></div>
+        <div class="stat"><span class="num mono">20 anos</span><span class="lbl">prazo mínimo de retenção dos registros</span></div>
+        <div class="stat"><span class="num mono">R$ 6.708</span><span class="lbl">multa por trabalhador exposto sem gestão</span></div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:28px;">
+      <div class="card">
+        <div class="eyebrow">Como funciona</div>
+        <div class="steps">
+          <div class="step"><div class="idx">01</div><div class="txt"><strong>Aplicação anônima</strong><span>Trabalhadores respondem 10 itens em 6 dimensões psicossociais, sem identificação individual.</span></div></div>
+          <div class="step"><div class="idx">02</div><div class="txt"><strong>Classificação automática</strong><span>Cada dimensão recebe uma nota média e uma faixa de risco — baixo, médio ou alto.</span></div></div>
+          <div class="step"><div class="idx">03</div><div class="txt"><strong>Painel vivo</strong><span>Acompanhamento contínuo, compatível com a exigência de rastreabilidade de 20 anos.</span></div></div>
+          <div class="step"><div class="idx">04</div><div class="txt"><strong>Texto pronto para o IRO</strong><span>Geração automática do parágrafo de riscos psicossociais para colar no PGR.</span></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Base normativa</div>
+        <p style="font-size:14px; color:var(--slate); line-height:1.6; margin-top:0;">O instrumento cobre as dimensões exemplificadas pelo Guia MTE (2024) e alinhadas à ISO 45003:2021.</p>
+        <div class="law-box">
+          <strong style="display:block; margin-bottom:4px; color:#3d2e0b;">NR-1, item 1.5.4.4, alínea "e"</strong>
+          A organização deve identificar os perigos e avaliar os riscos considerando fatores de risco psicossocial, ao lado dos riscos físicos, químicos, biológicos e ergonômicos.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FORMULÁRIO ============ -->
+  <section class="view" id="view-formulario">
+    <div class="eyebrow">Coleta anônima</div>
+    <h1 class="page-title">Avaliação de riscos psicossociais</h1>
+    <p class="lede">Suas respostas não são vinculadas ao seu nome. Escolha apenas o setor, para permitir análises agregadas.</p>
+
+    <div class="anon-note">🔒 Este formulário não coleta nome, e-mail ou qualquer identificador pessoal. Os dados são armazenados de forma agregada, conforme a LGPD.</div>
+    <div class="anon-note" id="storageModeNote" style="margin-top:-14px;"></div>
+
+    <div class="meta-row">
+      <select id="f-setor">
+        <option value="">Setor (opcional)</option>
+        <option>Produção / operação</option>
+        <option>Administrativo</option>
+        <option>Manutenção</option>
+        <option>Logística</option>
+        <option>Liderança / gestão</option>
+        <option>Outro</option>
+      </select>
+    </div>
+
+    <div id="questions"></div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+      <span id="progress" style="font-size:13px; color:var(--slate);" class="mono">0 / 10 respondidas</span>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitForm()" disabled>Enviar avaliação</button>
+    </div>
+    <div id="formMsg" style="margin-top:16px; font-size:14px;"></div>
+  </section>
+
+  <!-- ============ PAINEL ============ -->
+  <section class="view" id="view-painel">
+    <div class="eyebrow">Consolidado</div>
+    <h1 class="page-title">Painel de riscos psicossociais</h1>
+    <p class="lede">Resultados agregados de todas as respostas coletadas neste ambiente.</p>
+
+    <div id="painelEmpty" class="empty" style="display:none;">
+      <div class="icon">📋</div>
+      <div>Ainda não há respostas registradas. Aplique a avaliação para começar a popular o painel.</div>
+      <button class="btn btn-dark" style="margin-top:16px;" onclick="go('formulario')">Aplicar avaliação</button>
+    </div>
+
+    <div id="painelContent" style="display:none;">
+      <div class="kpi-row">
+        <div class="kpi"><div class="v mono" id="kpiN">0</div><div class="l">respondentes</div></div>
+        <div class="kpi"><div class="v mono" id="kpiAlto">0</div><div class="l">dimensões em risco alto</div></div>
+        <div class="kpi"><div class="v mono" id="kpiMedio">0</div><div class="l">dimensões em risco médio</div></div>
+        <div class="kpi"><div class="v mono" id="kpiBaixo">0</div><div class="l">dimensões em risco baixo</div></div>
+      </div>
+
+      <div class="card">
+        <div class="eyebrow">Resultado por dimensão</div>
+        <div id="dimList"></div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <div class="eyebrow">Texto sugerido para o IRO / PGR</div>
+        <p style="font-size:13px; color:var(--slate); margin-top:0;">Gerado automaticamente a partir dos resultados acima. Revise antes de inserir no documento oficial.</p>
+        <textarea class="iro-out" id="iroText" readonly></textarea>
+        <div class="toolbar">
+          <button class="btn btn-dark" onclick="copyIRO()">Copiar texto</button>
+          <button class="btn btn-ghost" style="color:var(--navy); border-color:var(--line);" onclick="resetData()">Limpar dados de demonstração</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ROADMAP ============ -->
+  <section class="view" id="view-roadmap">
+    <div class="eyebrow">Visão da plataforma</div>
+    <h1 class="page-title">Uma base de dados. Quatro processos hoje manuais.</h1>
+    <p class="lede">O Módulo 1 é o primeiro de quatro módulos planejados sobre o mesmo Inventário de Riscos Ocupacionais — cada um resolvendo um processo de SST ainda dependente de papel ou planilha.</p>
+
+    <div class="mod-grid">
+      <div class="mod-card live">
+        <span class="mod-status status-live">● em uso</span>
+        <div class="mod-num">MÓDULO 01</div>
+        <div class="mod-title">Riscos psicossociais</div>
+        <div class="mod-desc">NR-1 · ISO 45003. Aplicação de instrumento, classificação automática de risco e geração de texto para o IRO.</div>
+      </div>
+      <div class="mod-card live">
+        <span class="mod-status status-live">● em uso</span>
+        <div class="mod-num">MÓDULO 02</div>
+        <div class="mod-title">APR / Permissão de Trabalho digital</div>
+        <div class="mod-desc">NR-33 · NR-35 · NR-12. Preenchimento em campo com assinatura digital, geolocalização e bloqueio automático sem checklist completo.</div>
+      </div>
+      <div class="mod-card">
+        <span class="mod-status status-dev">em desenvolvimento</span>
+        <div class="mod-num">MÓDULO 03</div>
+        <div class="mod-title">Análise Ergonômica (AEP/AET)</div>
+        <div class="mod-desc">NR-17. Formulário estruturado e geração automatizada de laudo — ponto de partida metodológico da própria avaliação psicossocial.</div>
+      </div>
+      <div class="mod-card">
+        <span class="mod-status status-dev">em desenvolvimento</span>
+        <div class="mod-num">MÓDULO 04</div>
+        <div class="mod-title">Investigação de acidentes e near-miss</div>
+        <div class="mod-desc">NR-1. Registro rápido em campo, árvore de causas e apoio à emissão da CAT — agora obrigatório para toda empresa, não só as com SESMT.</div>
+      </div>
+    </div>
+  </section>
+  <!-- ============ CONFIGURAÇÕES ============ -->
+  <section class="view" id="view-config">
+    <div class="eyebrow">Backend</div>
+    <h1 class="page-title">Conexão com a nuvem</h1>
+    <p class="lede">Cole aqui o endereço do backend criado no Google Apps Script (ver arquivo <span class="mono">psike-backend-google-apps-script.gs.txt</span>). Assim, respostas de qualquer celular passam a ser gravadas numa Planilha Google real, e o painel fica compartilhado entre todos.</p>
+
+    <div class="card">
+      <div class="eyebrow">Endereço do backend na nuvem</div>
+      <div class="meta-row" style="margin-bottom:10px;">
+        <input type="text" id="sheetsUrlInput" placeholder="https://script.google.com/macros/s/SEU_ID/exec">
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-dark" onclick="saveSheetsUrl()">Salvar</button>
+        <button class="btn btn-ghost" style="color:var(--navy); border-color:var(--line);" onclick="testSheetsUrl()">Testar conexão</button>
+        <button class="btn btn-ghost" style="color:var(--risk-high); border-color:var(--line);" onclick="clearSheetsUrl()">Remover / voltar ao modo local</button>
+      </div>
+      <div id="configMsg" style="margin-top:14px; font-size:14px;"></div>
+    </div>
+
+    <div class="law-box" style="margin-top:20px;">
+      <strong style="display:block; margin-bottom:4px; color:#3d2e0b;">Importante para distribuir aos respondentes</strong>
+      Esta URL fica salva apenas neste navegador. Para que TODOS os funcionários gravem na mesma planilha automaticamente (sem cada um precisar colar a URL), edite a constante <span class="mono">SHEETS_WEBAPP_URL</span> no início do arquivo HTML antes de compartilhar o link/arquivo final com a equipe.
+    </div>
+  </section>
+  <!-- ============ APR DE CAMPO ============ -->
+  <section class="view" id="view-apr">
+    <div class="eyebrow">Módulo 2 · NR-33 / NR-35 / NR-12</div>
+    <h1 class="page-title">Permissão de Trabalho digital</h1>
+    <p class="lede">Preencha o checklist, capture a localização e assine para liberar a atividade. Nada é liberado sem o checklist completo.</p>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="eyebrow">Dados da atividade</div>
+        <div class="meta-row">
+          <select id="apr-tipo" onchange="renderChecklist()">
+            <option value="">Tipo de atividade</option>
+            <option value="NR-33 · Espaço confinado">NR-33 · Espaço confinado</option>
+            <option value="NR-35 · Trabalho em altura">NR-35 · Trabalho em altura</option>
+            <option value="NR-12 · Máquinas e equipamentos">NR-12 · Máquinas e equipamentos</option>
+          </select>
+        </div>
+        <div class="meta-row">
+          <input type="text" id="apr-local" placeholder="Local da atividade">
+          <input type="text" id="apr-responsavel" placeholder="Responsável / executante">
+        </div>
+
+        <div id="checklistWrap"></div>
+
+        <div style="margin-top:10px;">
+          <button class="btn btn-dark" onclick="captureGeo()">📍 Capturar localização</button>
+          <span id="geoStatus" style="font-size:12.5px; color:var(--slate); margin-left:10px;"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="eyebrow">Assinatura de liberação</div>
+        <p style="font-size:13px; color:var(--slate); margin-top:0;">Assine com o dedo/mouse abaixo para confirmar que o checklist foi verificado em campo.</p>
+        <canvas id="sigPad" width="360" height="160" style="width:100%; border:1.5px solid var(--line); border-radius:10px; background:#fff; touch-action:none;"></canvas>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <input type="text" id="apr-assinante" placeholder="Nome de quem assina" style="flex:1; padding:10px 12px; border:1.5px solid var(--line); border-radius:9px;">
+          <button class="btn btn-ghost" style="color:var(--navy); border-color:var(--line);" onclick="clearSig()">Limpar</button>
+        </div>
+        <button class="btn btn-primary" id="aprSubmitBtn" style="width:100%; margin-top:16px; justify-content:center;" onclick="submitAPR()" disabled>Liberar atividade e assinar</button>
+        <div id="aprMsg" style="margin-top:12px; font-size:14px;"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="eyebrow">Últimas liberações registradas</div>
+      <div id="aprList" style="font-size:13.5px; color:var(--slate);">Carregando...</div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="appfoot">Psike · protótipo acadêmico desenvolvido para fins de TCC · dados armazenados de forma anônima e agregada</footer>
+
+<script>
+const DIMENSIONS = [
+  { id:"carga", label:"Carga e ritmo de trabalho" },
+  { id:"autonomia", label:"Autonomia e controle" },
+  { id:"clareza", label:"Clareza de papel" },
+  { id:"apoio", label:"Apoio social e de liderança" },
+  { id:"reconhecimento", label:"Reconhecimento" },
+  { id:"assedio", label:"Assédio e violência no trabalho" },
+];
+
+const QUESTIONS = [
+  { dim:"carga", text:"Tenho tempo suficiente para realizar minhas tarefas com qualidade." },
+  { dim:"carga", text:"Raramente preciso trabalhar sob pressão intensa de prazos." },
+  { dim:"autonomia", text:"Tenho liberdade para decidir como organizar meu trabalho." },
+  { dim:"autonomia", text:"Minhas opiniões são consideradas nas decisões que afetam meu trabalho." },
+  { dim:"clareza", text:"Sei exatamente o que se espera de mim no meu cargo." },
+  { dim:"clareza", text:"Não recebo instruções contraditórias sobre minhas tarefas." },
+  { dim:"apoio", text:"Posso contar com o apoio da minha liderança quando necessário." },
+  { dim:"apoio", text:"Existe boa colaboração entre os membros da minha equipe." },
+  { dim:"reconhecimento", text:"Meu trabalho é reconhecido e valorizado pela organização." },
+  { dim:"assedio", text:"Nos últimos 12 meses, não presenciei nem sofri situações de assédio moral ou sexual no trabalho." },
+];
+
+const SCALE = [
+  {v:1,l:"Discordo totalmente"},
+  {v:2,l:"Discordo"},
+  {v:3,l:"Neutro"},
+  {v:4,l:"Concordo"},
+  {v:5,l:"Concordo totalmente"},
+];
+
+let answers = {};
+
+/* =========================================================
+   BACKEND NA NUVEM (Google Sheets via Apps Script)
+   ---------------------------------------------------------
+   Para todos os respondentes gravarem automaticamente na MESMA
+   planilha, cole aqui a URL gerada no passo 7 do arquivo
+   psike-backend-google-apps-script.gs.txt, antes de distribuir
+   este arquivo. Deixe "" para usar o modo local/Claude por padrão. */
+const SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzjTCV703vmg0ncP9IIZhmgqBlLwC0Ok1-GjCsZPxxqGyGJl4byHU_vx2hQOUB4NnDb2g/exec";
+/* ========================================================= */
+
+function getConfiguredSheetsUrl(){
+  return localStorage.getItem('psike_sheets_url') || SHEETS_WEBAPP_URL || "";
+}
+
+const CloudStore = {
+  active(){ return !!getConfiguredSheetsUrl(); },
+
+  async submit(record){
+    const url = getConfiguredSheetsUrl();
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // evita preflight CORS no Apps Script
+      body: JSON.stringify({ action: "submit", setor: record.setor, answers: record.answers }),
+    });
+  },
+
+  async list(){
+    const url = getConfiguredSheetsUrl();
+    const res = await fetch(`${url}?action=list`);
+    const data = await res.json();
+    return (data && data.records) ? data.records : [];
+  },
+
+  async reset(){
+    const url = getConfiguredSheetsUrl();
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "reset" }),
+    });
+  },
+
+  async ping(){
+    const url = getConfiguredSheetsUrl();
+    const res = await fetch(`${url}?action=ping`);
+    return await res.json();
+  }
+};
+
+/* ---------- storage adapter ----------
+   Usa window.storage quando disponível (ex.: dentro do painel de Artifacts do Claude).
+   Fora desse ambiente (arquivo aberto direto no navegador), cai para localStorage,
+   mantendo a mesma interface get/set/delete/list. */
+const LOCAL_PREFIX = "psike_v1::";
+
+function hasNativeStorage(){
+  return typeof window.storage === "object" && window.storage !== null
+    && typeof window.storage.set === "function";
+}
+
+const Store = {
+  async set(key, value, shared){
+    if(hasNativeStorage()){
+      try{ return await window.storage.set(key, value, shared); }
+      catch(e){ console.warn("window.storage indisponivel, usando localStorage.", e); }
+    }
+    localStorage.setItem(LOCAL_PREFIX + key, value);
+    return { key, value, shared: !!shared };
+  },
+  async get(key, shared){
+    if(hasNativeStorage()){
+      try{ return await window.storage.get(key, shared); }
+      catch(e){ /* cai para localStorage abaixo */ }
+    }
+    const value = localStorage.getItem(LOCAL_PREFIX + key);
+    if(value === null) return null;
+    return { key, value, shared: !!shared };
+  },
+  async delete(key, shared){
+    if(hasNativeStorage()){
+      try{ return await window.storage.delete(key, shared); }
+      catch(e){ /* cai para localStorage abaixo */ }
+    }
+    localStorage.removeItem(LOCAL_PREFIX + key);
+    return { key, deleted: true, shared: !!shared };
+  },
+  async list(prefix, shared){
+    if(hasNativeStorage()){
+      try{ return await window.storage.list(prefix, shared); }
+      catch(e){ /* cai para localStorage abaixo */ }
+    }
+    const keys = [];
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith(LOCAL_PREFIX)){
+        const bare = k.slice(LOCAL_PREFIX.length);
+        if(!prefix || bare.startsWith(prefix)) keys.push(bare);
+      }
+    }
+    return { keys, prefix, shared: !!shared };
+  }
+};
+
+function go(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  if(view==='painel') renderPainel();
+  if(view==='apr') renderAprList();
+}
+document.getElementById('tabs').addEventListener('click', e=>{
+  if(e.target.tagName==='BUTTON') go(e.target.dataset.view);
+});
+
+function renderQuestions(){
+  const wrap = document.getElementById('questions');
+  wrap.innerHTML = QUESTIONS.map((q,i)=>{
+    const dimLabel = DIMENSIONS.find(d=>d.id===q.dim).label;
+    return `
+    <div class="q-card">
+      <div class="q-dim">${dimLabel}</div>
+      <div class="q-text">${i+1}. ${q.text}</div>
+      <div class="scale">
+        ${SCALE.map(s=>`
+          <label>
+            <input type="radio" name="q${i}" value="${s.v}" onchange="setAnswer(${i},${s.v})">
+            <span class="n">${s.v}</span>${s.l}
+          </label>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setAnswer(i,v){
+  answers[i]=v;
+  const n = Object.keys(answers).length;
+  document.getElementById('progress').textContent = `${n} / ${QUESTIONS.length} respondidas`;
+  document.getElementById('submitBtn').disabled = n < QUESTIONS.length;
+}
+
+async function submitForm(){
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = "Enviando...";
+  const setor = document.getElementById('f-setor').value || "Não informado";
+  const record = { setor, answers: {...answers}, ts: Date.now() };
+  const key = `resp:${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  try{
+    if(CloudStore.active()){
+      await CloudStore.submit(record);
+    } else {
+      await Store.set(key, JSON.stringify(record), true);
+    }
+    document.getElementById('formMsg').innerHTML = '<span style="color:var(--risk-low); font-weight:600;">✓ Avaliação registrada anonimamente. Obrigado.</span>';
+    answers = {};
+    document.querySelectorAll('#questions input[type=radio]').forEach(r=>r.checked=false);
+    document.getElementById('progress').textContent = '0 / 10 respondidas';
+    document.getElementById('f-setor').value = "";
+    btn.textContent = "Enviar avaliação";
+    setTimeout(()=>go('painel'), 900);
+  }catch(err){
+    document.getElementById('formMsg').innerHTML = '<span style="color:var(--risk-high);">Não foi possível salvar agora. Tente novamente.</span>';
+    btn.textContent = "Enviar avaliação";
+    btn.disabled = false;
+    console.error(err);
+  }
+}
+
+function classify(mean){
+  if(mean >= 3.8) return {cls:'low', label:'BAIXO'};
+  if(mean >= 2.8) return {cls:'mid', label:'MÉDIO'};
+  return {cls:'high', label:'ALTO'};
+}
+
+async function renderPainel(){
+  let records = [];
+  if(CloudStore.active()){
+    try{
+      records = await CloudStore.list();
+    }catch(e){
+      console.error("Falha ao consultar o backend na nuvem:", e);
+    }
+  } else {
+    let keys;
+    try{
+      const res = await Store.list('resp:', true);
+      keys = res ? res.keys : [];
+    }catch(e){ keys = []; }
+    for(const k of (keys||[])){
+      try{
+        const r = await Store.get(k, true);
+        if(r && r.value) records.push(JSON.parse(r.value));
+      }catch(e){ /* skip missing key */ }
+    }
+  }
+
+  if(!records || records.length===0){
+    document.getElementById('painelEmpty').style.display='block';
+    document.getElementById('painelContent').style.display='none';
+    return;
+  }
+
+  document.getElementById('painelEmpty').style.display='none';
+  document.getElementById('painelContent').style.display='block';
+  document.getElementById('kpiN').textContent = records.length;
+
+  const dimStats = {};
+  DIMENSIONS.forEach(d=> dimStats[d.id] = []);
+  records.forEach(rec=>{
+    QUESTIONS.forEach((q,i)=>{
+      const val = rec.answers[i];
+      if(val!==undefined) dimStats[q.dim].push(val);
+    });
+  });
+
+  let nAlto=0,nMedio=0,nBaixo=0;
+  const dimListHtml = DIMENSIONS.map(d=>{
+    const vals = dimStats[d.id];
+    const mean = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+    const c = classify(mean);
+    if(c.cls==='high') nAlto++; else if(c.cls==='mid') nMedio++; else nBaixo++;
+    const pct = (mean/5*100).toFixed(0);
+    const barColor = c.cls==='high' ? 'var(--risk-high)' : c.cls==='mid' ? 'var(--risk-mid)' : 'var(--risk-low)';
+    return `
+      <div class="dim-row">
+        <div class="dim-name">${d.label}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${barColor};"></div></div>
+        <span class="mono" style="font-size:12.5px; width:40px; text-align:right;">${mean.toFixed(1)}</span>
+        <div class="dim-badge badge-${c.cls}">${c.label}</div>
+      </div>`;
+  }).join('');
+  document.getElementById('dimList').innerHTML = dimListHtml;
+  document.getElementById('kpiAlto').textContent = nAlto;
+  document.getElementById('kpiMedio').textContent = nMedio;
+  document.getElementById('kpiBaixo').textContent = nBaixo;
+
+  // Generate IRO text
+  const dataStr = new Date().toLocaleDateString('pt-BR');
+  let iro = `INVENTÁRIO DE RISCOS OCUPACIONAIS — SEÇÃO: FATORES DE RISCO PSICOSSOCIAL\n`;
+  iro += `Base normativa: NR-1, item 1.5.4.4, alínea "e" (Portaria MTE nº 1.419/2024)\n`;
+  iro += `Data de geração: ${dataStr}\n`;
+  iro += `Método: aplicação de questionário estruturado, ${records.length} respondente(s), coleta anônima.\n\n`;
+  DIMENSIONS.forEach(d=>{
+    const vals = dimStats[d.id];
+    const mean = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+    const c = classify(mean);
+    iro += `• ${d.label}: nota média ${mean.toFixed(2)}/5 — risco ${c.label} (n=${vals.length}).\n`;
+  });
+  iro += `\nMedidas de controle recomendadas: priorizar plano de ação (5W2H) para as dimensões classificadas como risco médio ou alto, com prazos, responsáveis e critérios de monitoramento, conforme NR-1, item 1.5.3.\n`;
+  iro += `Reavaliação: recomenda-se nova aplicação em ciclo anual, mantendo registro histórico por, no mínimo, 20 anos.`;
+  document.getElementById('iroText').value = iro;
+}
+
+function copyIRO(){
+  const ta = document.getElementById('iroText');
+  ta.select();
+  document.execCommand('copy');
+}
+
+async function resetData(){
+  if(!confirm("Isso apagará todas as respostas de demonstração armazenadas. Continuar?")) return;
+  try{
+    if(CloudStore.active()){
+      await CloudStore.reset();
+    } else {
+      const res = await Store.list('resp:', true);
+      const keys = res ? res.keys : [];
+      for(const k of keys){ await Store.delete(k, true); }
+    }
+    renderPainel();
+  }catch(e){ console.error(e); }
+}
+
+/* ================= MÓDULO 2 — APR / PT digital ================= */
+
+const CHECKLISTS = {
+  "NR-33 · Espaço confinado": [
+    "Espaço identificado e sinalizado",
+    "Atmosfera testada (O2, gases inflamáveis/tóxicos)",
+    "Ventilação/exaustão ativa",
+    "Vigia designado e presente",
+    "Equipamento de resgate disponível",
+    "EPI específico verificado (máscara, tripé, cabo de vida)",
+  ],
+  "NR-35 · Trabalho em altura": [
+    "Análise de risco da atividade revisada",
+    "Sistema de ancoragem verificado",
+    "Cinto de segurança e talabarte inspecionados",
+    "Condições climáticas favoráveis",
+    "Área isolada abaixo do trabalho",
+    "Plano de resgate definido",
+  ],
+  "NR-12 · Máquinas e equipamentos": [
+    "Máquina bloqueada e etiquetada (LOTO)",
+    "Dispositivos de segurança testados",
+    "Zona de perigo isolada",
+    "EPI específico da atividade verificado",
+    "Procedimento operacional revisado com a equipe",
+  ],
+};
+
+let geoData = null;
+let sigCtx, sigDrawing = false, sigHasStroke = false;
+
+function renderChecklist(){
+  const tipo = document.getElementById('apr-tipo').value;
+  const wrap = document.getElementById('checklistWrap');
+  if(!tipo){ wrap.innerHTML=""; updateAprSubmitState(); return; }
+  const items = CHECKLISTS[tipo];
+  wrap.innerHTML = `<div class="eyebrow" style="margin-top:20px;">Checklist obrigatório</div>` +
+    items.map((item,i)=>`
+      <label style="display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:14px; cursor:pointer;">
+        <input type="checkbox" class="chk-item" data-item="${item}" onchange="updateAprSubmitState()" style="width:18px; height:18px;">
+        ${item}
+      </label>`).join('');
+  updateAprSubmitState();
+}
+
+function checklistComplete(){
+  const boxes = document.querySelectorAll('.chk-item');
+  if(boxes.length===0) return false;
+  return Array.from(boxes).every(b=>b.checked);
+}
+
+function updateAprSubmitState(){
+  const ready = checklistComplete()
+    && !!geoData
+    && sigHasStroke
+    && document.getElementById('apr-local').value.trim()!==""
+    && document.getElementById('apr-responsavel').value.trim()!==""
+    && document.getElementById('apr-assinante').value.trim()!=="";
+  document.getElementById('aprSubmitBtn').disabled = !ready;
+}
+["apr-local","apr-responsavel","apr-assinante"].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateAprSubmitState);
+});
+
+function captureGeo(){
+  const status = document.getElementById('geoStatus');
+  if(!navigator.geolocation){
+    status.textContent = "Geolocalização não suportada neste navegador.";
+    return;
+  }
+  status.textContent = "Obtendo localização...";
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      geoData = { lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6) };
+      status.textContent = `✓ Capturada: ${geoData.lat}, ${geoData.lng}`;
+      updateAprSubmitState();
+    },
+    err=>{ status.textContent = "Não foi possível obter localização (permissão negada ou indisponível)."; },
+    { enableHighAccuracy:true, timeout:8000 }
+  );
+}
+
+function setupSigPad(){
+  const canvas = document.getElementById('sigPad');
+  sigCtx = canvas.getContext('2d');
+  sigCtx.lineWidth = 2.2;
+  sigCtx.lineCap = 'round';
+  sigCtx.strokeStyle = '#16233F';
+
+  function pos(e){
+    const r = canvas.getBoundingClientRect();
+    const p = e.touches ? e.touches[0] : e;
+    return { x: (p.clientX-r.left) * (canvas.width/r.width), y: (p.clientY-r.top) * (canvas.height/r.height) };
+  }
+  function start(e){ sigDrawing=true; const p=pos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x,p.y); e.preventDefault(); }
+  function move(e){ if(!sigDrawing) return; const p=pos(e); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); sigHasStroke=true; updateAprSubmitState(); e.preventDefault(); }
+  function end(){ sigDrawing=false; }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', move, {passive:false});
+  canvas.addEventListener('touchend', end);
+}
+
+function clearSig(){
+  const canvas = document.getElementById('sigPad');
+  sigCtx.clearRect(0,0,canvas.width,canvas.height);
+  sigHasStroke = false;
+  updateAprSubmitState();
+}
+
+async function submitAPR(){
+  const btn = document.getElementById('aprSubmitBtn');
+  btn.disabled = true; btn.textContent = "Enviando...";
+  const checklist = Array.from(document.querySelectorAll('.chk-item')).map(b=>({item:b.dataset.item, ok:b.checked}));
+  const payload = {
+    module: "apr",
+    action: "submit",
+    atividade: document.getElementById('apr-tipo').value,
+    local: document.getElementById('apr-local').value.trim(),
+    responsavel: document.getElementById('apr-responsavel').value.trim(),
+    checklist,
+    geolat: geoData ? geoData.lat : "",
+    geolng: geoData ? geoData.lng : "",
+    assinante: document.getElementById('apr-assinante').value.trim(),
+    liberado: true,
+  };
+  try{
+    if(CloudStore.active()){
+      const url = getConfiguredSheetsUrl();
+      await fetch(url, {
+        method:"POST",
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify(payload),
+      });
+    } else {
+      const key = `apr:${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+      await Store.set(key, JSON.stringify(payload), true);
+    }
+    document.getElementById('aprMsg').innerHTML = '<span style="color:var(--risk-low); font-weight:600;">✓ Atividade liberada e registrada.</span>';
+    btn.textContent = "Liberar atividade e assinar";
+    resetAprForm();
+    renderAprList();
+  }catch(err){
+    document.getElementById('aprMsg').innerHTML = '<span style="color:var(--risk-high);">Falha ao registrar. Tente novamente.</span>';
+    btn.textContent = "Liberar atividade e assinar";
+    btn.disabled = false;
+    console.error(err);
+  }
+}
+
+function resetAprForm(){
+  document.getElementById('apr-tipo').value = "";
+  document.getElementById('apr-local').value = "";
+  document.getElementById('apr-responsavel').value = "";
+  document.getElementById('apr-assinante').value = "";
+  document.getElementById('checklistWrap').innerHTML = "";
+  document.getElementById('geoStatus').textContent = "";
+  geoData = null;
+  clearSig();
+}
+
+async function renderAprList(){
+  const el = document.getElementById('aprList');
+  let records = [];
+  try{
+    if(CloudStore.active()){
+      const url = getConfiguredSheetsUrl();
+      const res = await fetch(`${url}?module=apr&action=list`);
+      const data = await res.json();
+      records = (data && data.records) ? data.records : [];
+    } else {
+      const res = await Store.list('apr:', true);
+      const keys = res ? res.keys : [];
+      for(const k of (keys||[])){
+        const r = await Store.get(k, true);
+        if(r && r.value) records.push(JSON.parse(r.value));
+      }
+    }
+  }catch(e){ /* ignore */ }
+
+  if(!records.length){
+    el.innerHTML = "Nenhuma liberação registrada ainda.";
+    return;
+  }
+  el.innerHTML = records.slice(-8).reverse().map(r=>`
+    <div style="padding:10px 0; border-bottom:1px solid var(--line);">
+      <strong style="color:var(--navy);">${r.atividade || "—"}</strong> · ${r.local || "—"}<br>
+      <span class="mono">${r.responsavel || "—"} · assinado por ${r.assinante || "—"} · ${(r.geolat && r.geolng) ? r.geolat+", "+r.geolng : "sem geo"}</span>
+    </div>`).join('');
+}
+
+setupSigPad();
+renderQuestions();
+renderAprList();
+
+function refreshStorageModeNote(){
+  const el = document.getElementById('storageModeNote');
+  if(!el) return;
+  if(CloudStore.active()){
+    el.textContent = "☁️ Modo nuvem: respostas gravadas em Planilha Google, compartilhadas entre todos os respondentes.";
+  } else if(hasNativeStorage()){
+    el.textContent = "ℹ️ Modo Claude: respostas ficam salvas no armazenamento do Artifact e são vistas por quem acessar este mesmo painel.";
+  } else {
+    el.textContent = "ℹ️ Modo local: as respostas ficam salvas apenas neste navegador/aparelho. Configure a nuvem na aba \"Configurações\" para um painel compartilhado de verdade.";
+  }
+}
+refreshStorageModeNote();
+
+document.getElementById('sheetsUrlInput').value = getConfiguredSheetsUrl();
+
+function saveSheetsUrl(){
+  const val = document.getElementById('sheetsUrlInput').value.trim();
+  if(val) localStorage.setItem('psike_sheets_url', val);
+  else localStorage.removeItem('psike_sheets_url');
+  document.getElementById('configMsg').innerHTML = '<span style="color:var(--risk-low); font-weight:600;">✓ Salvo neste navegador.</span>';
+  refreshStorageModeNote();
+}
+
+async function testSheetsUrl(){
+  const val = document.getElementById('sheetsUrlInput').value.trim();
+  if(!val){
+    document.getElementById('configMsg').innerHTML = '<span style="color:var(--risk-high);">Cole a URL antes de testar.</span>';
+    return;
+  }
+  document.getElementById('configMsg').textContent = "Testando...";
+  const prevStored = localStorage.getItem('psike_sheets_url');
+  localStorage.setItem('psike_sheets_url', val); // temporário, para o ping usar essa URL
+  try{
+    const r = await CloudStore.ping();
+    if(r && r.ok){
+      document.getElementById('configMsg').innerHTML = '<span style="color:var(--risk-low); font-weight:600;">✓ Conexão OK — backend respondeu corretamente.</span>';
+    } else {
+      document.getElementById('configMsg').innerHTML = '<span style="color:var(--risk-high);">O backend respondeu, mas de forma inesperada. Revise o script.</span>';
+    }
+  }catch(e){
+    document.getElementById('configMsg').innerHTML = '<span style="color:var(--risk-high);">Não foi possível conectar. Confira se a implantação está como "Qualquer pessoa" tem acesso.</span>';
+    if(prevStored===null) localStorage.removeItem('psike_sheets_url'); else localStorage.setItem('psike_sheets_url', prevStored);
+  }
+}
+
+function clearSheetsUrl(){
+  localStorage.removeItem('psike_sheets_url');
+  document.getElementById('sheetsUrlInput').value = "";
+  document.getElementById('configMsg').innerHTML = 'Removido — voltando ao modo local/Claude.';
+  refreshStorageModeNote();
+}
+</script>
+</body>
+</html>
