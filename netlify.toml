@@ -1,0 +1,18 @@
+# Deploy contínuo do Psike no Netlify.
+# Como usar: em app.netlify.com > Add new site > Import from Git, conecte
+# este repositório. O site é servido a partir da raiz (index.html já está lá),
+# sem etapa de build. Cada push na branch publicada gera um novo deploy.
+
+[build]
+  publish = "."
+  command = ""
+
+# index.html é estático e autocontido; nada a compilar.
+# As chamadas ao backend vão direto para o Google Apps Script (CORS liberado
+# via Content-Type text/plain), então não é necessário proxy/redirect aqui.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
