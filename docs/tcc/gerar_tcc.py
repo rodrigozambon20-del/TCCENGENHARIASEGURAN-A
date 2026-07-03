@@ -4,16 +4,26 @@ Gerador do TCC — Gestão digital de riscos psicossociais conforme a NR-1 (Psik
 Produz TCC_Riscos_Psicossociais_NR1_MODELO.docx com formatação ABNT
 (A4, Arial 12, espaçamento 1,5, margens 3/3/2/2, recuo de 1,25 cm).
 
+Versão revisada após a orientação com a Profa. Renata (reunião 03/07/2026):
+- Extensão-alvo de 40 a 80 folhas.
+- Revisão de literatura ampla, com definições, justificativa das escolhas e
+  referências dos últimos cinco anos, além de seção específica sobre burnout.
+- Passo a passo da monografia detalhado na metodologia.
+- Resultados e discussão integrados.
+- Conclusão curta (se o objetivo foi ou não atingido).
+- ANONIMATO: não se expõe o nome da empresa nem imagens/dados de pessoas.
+  Nos agradecimentos, agradece-se apenas à CERPRO.
+
 Uso:  python3 gerar_tcc.py
 Requer: pip install python-docx
 
-Trechos marcados [PREENCHER: ...] dependem de dados reais de campo e ficam
-realçados em amarelo no documento — NÃO devem ser inventados.
+Trechos [PREENCHER: ...] dependem de dados reais de campo e ficam realçados em
+amarelo — NÃO devem ser inventados, e NÃO devem identificar empresa/pessoas.
 """
 import copy
 from docx import Document
 from docx.shared import Pt, Cm
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_BREAK
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.enum.text import WD_COLOR_INDEX
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
@@ -30,12 +40,10 @@ def set_base_styles(doc):
     pf = st.paragraph_format
     pf.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
     pf.space_after = Pt(6)
-    for lvl, size in (("Heading 1", 12), ("Heading 2", 12), ("Heading 3", 12)):
+    for lvl in ("Heading 1", "Heading 2", "Heading 3"):
         h = doc.styles[lvl]
-        h.font.name = "Arial"
-        h.font.size = Pt(size)
-        h.font.bold = True
-        h.font.color.rgb = None  # preto (herda automático)
+        h.font.name = "Arial"; h.font.size = Pt(12); h.font.bold = True
+        h.font.color.rgb = None
         h.element.rPr.rFonts.set(qn("w:eastAsia"), "Arial")
         h.paragraph_format.space_before = Pt(18)
         h.paragraph_format.space_after = Pt(12)
@@ -48,7 +56,6 @@ def set_margins(doc):
         sec.bottom_margin, sec.right_margin = Cm(2), Cm(2)
 
 def page_number_header(doc):
-    """Número de página no canto superior direito (padrão ABNT)."""
     hdr = doc.sections[0].header
     p = hdr.paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
@@ -65,62 +72,50 @@ def page_number_header(doc):
             node.text = text
         run._r.append(node)
 
-def center(doc, text, bold=False, size=12, upper=False, space_after=6):
+def center(doc, text, bold=False, size=12, space_after=6):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(space_after)
-    r = p.add_run(text.upper() if upper else text)
-    r.bold = bold
-    r.font.size = Pt(size)
+    r = p.add_run(text)
+    r.bold = bold; r.font.size = Pt(size)
     return p
 
-def add_body(doc, text, indent=True, justify=True):
-    """Parágrafo de corpo; trechos [PREENCHER: ...] saem realçados em amarelo."""
+def _runs_with_marks(p, text):
+    """Adiciona texto ao parágrafo, realçando [PREENCHER: ...] em amarelo."""
+    rest = text
+    while "[PREENCHER" in rest:
+        before, _, tail = rest.partition("[PREENCHER")
+        marker, _, rest = tail.partition("]")
+        if before:
+            p.add_run(before)
+        r = p.add_run("[PREENCHER" + marker + "]")
+        r.font.highlight_color = WD_COLOR_INDEX.YELLOW; r.bold = True
+    if rest:
+        p.add_run(rest)
+
+def body(doc, text, indent=True):
     p = doc.add_paragraph()
-    if justify:
-        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     if indent:
         p.paragraph_format.first_line_indent = Cm(1.25)
-    rest = text
-    while "[PREENCHER" in rest:
-        before, _, tail = rest.partition("[PREENCHER")
-        marker, _, rest = tail.partition("]")
-        if before:
-            p.add_run(before)
-        r = p.add_run("[PREENCHER" + marker + "]")
-        r.font.highlight_color = WD_COLOR_INDEX.YELLOW
-        r.bold = True
-    if rest:
-        p.add_run(rest)
+    _runs_with_marks(p, text)
     return p
 
-def add_bullet(doc, text):
-    p = doc.add_paragraph(style="List Bullet")
+def bullet(doc, text, numbered=False):
+    p = doc.add_paragraph(style="List Number" if numbered else "List Bullet")
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-    rest = text
-    while "[PREENCHER" in rest:
-        before, _, tail = rest.partition("[PREENCHER")
-        marker, _, rest = tail.partition("]")
-        if before:
-            p.add_run(before)
-        r = p.add_run("[PREENCHER" + marker + "]")
-        r.font.highlight_color = WD_COLOR_INDEX.YELLOW
-        r.bold = True
-    if rest:
-        p.add_run(rest)
+    _runs_with_marks(p, text)
     return p
 
-def add_quote(doc, text):
-    """Citação longa ABNT: recuo 4 cm, fonte 10, espaçamento simples."""
+def quote(doc, text):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     p.paragraph_format.left_indent = Cm(4)
     p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-    r = p.add_run(text)
-    r.font.size = Pt(10)
+    r = p.add_run(text); r.font.size = Pt(10)
     return p
 
-def add_ref(doc, text):
+def ref(doc, text):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
@@ -136,10 +131,14 @@ def add_toc(doc):
     instr.text = 'TOC \\o "1-3" \\h \\z \\u'
     sep = OxmlElement("w:fldChar"); sep.set(qn("w:fldCharType"), "separate")
     hint = OxmlElement("w:t")
-    hint.text = "Sumário automático: clique com o botão direito e escolha “Atualizar campo” no Word."
+    hint.text = "Sumário automático — no Word, clique com o botão direito e escolha “Atualizar campo”."
     end = OxmlElement("w:fldChar"); end.set(qn("w:fldCharType"), "end")
     for el in (begin, instr, sep, hint, end):
         run._r.append(el)
+
+def h1(doc, t): doc.add_heading(t, level=1)
+def h2(doc, t): doc.add_heading(t, level=2)
+def h3(doc, t): doc.add_heading(t, level=3)
 
 # ---------------------------------------------------------------- documento --
 
@@ -148,45 +147,44 @@ set_margins(doc)
 set_base_styles(doc)
 page_number_header(doc)
 
-# ===== Página de instruções do modelo (apagar antes de entregar) =============
+# ===== Página de instruções (apagar antes de entregar) =======================
 center(doc, "COMO USAR ESTE MODELO — APAGUE ESTA PÁGINA ANTES DE ENTREGAR",
        bold=True, size=13, space_after=14)
-add_body(doc, "Este documento é o modelo do TCC com todo o texto estruturado. Os "
-         "trechos realçados em amarelo, no formato [PREENCHER: ...], dependem de "
-         "dados reais (nome da empresa, orientador, resultados de campo, fotos) e "
-         "não devem ser inventados. Antes da entrega: (1) preencha todos os campos "
-         "amarelos; (2) atualize o Sumário (botão direito sobre ele, “Atualizar "
-         "campo”, “Atualizar o índice inteiro”); (3) confira as normas do seu "
-         "programa (EPUSP/PECE) quanto a capa, ficha catalográfica e folha de "
-         "aprovação; (4) apague esta página.", indent=False)
-add_body(doc, "Campos a preencher, na ordem em que aparecem: nome completo do autor; "
-         "nome do orientador e titulação; ano/local se diferente; dados da empresa "
-         "do estudo de caso; período e amostra da aplicação piloto; resultados "
-         "reais por dimensão; fotos/prints da aplicação; plano de ação 5W2H "
-         "elaborado com a empresa; e a data das referências normativas consultadas.",
-         indent=False)
+body(doc, "Este é o modelo do TCC com o texto estruturado conforme as Diretrizes "
+     "da USP/ABCD (5ª ed., 2024) e as orientações da supervisão da monografia. "
+     "Os trechos realçados em amarelo, no formato [PREENCHER: ...], dependem de "
+     "dados reais e não devem ser inventados.", indent=False)
+body(doc, "IMPORTANTE — anonimato exigido pela avaliação: NÃO inserir o nome da "
+     "empresa, NÃO inserir fotografias de rosto de trabalhadores e NÃO inserir "
+     "qualquer dado que identifique a organização ou as pessoas. Refira-se "
+     "sempre à “organização estudada”. As figuras devem ser apenas gráficos "
+     "agregados e telas do sistema sem dados pessoais. Nos agradecimentos, "
+     "agradece-se apenas à CERPRO.", indent=False)
+body(doc, "Antes de entregar: (1) preencha os campos amarelos; (2) atualize o "
+     "Sumário (botão direito > Atualizar campo > Atualizar o índice inteiro); "
+     "(3) confira capa, folha de aprovação e eventual ficha catalográfica "
+     "conforme o programa; (4) verifique a extensão (meta de 40 a 80 folhas); "
+     "(5) apague esta página.", indent=False)
 doc.add_page_break()
 
 # ===== Capa ===================================================================
-for _ in range(2):
-    center(doc, "")
+center(doc, ""); center(doc, "")
 center(doc, "UNIVERSIDADE DE SÃO PAULO", bold=True)
-center(doc, "ESCOLA POLITÉCNICA — PECE", bold=True)
-center(doc, "PROGRAMA DE EDUCAÇÃO CONTINUADA EM ENGENHARIA", bold=True)
-center(doc, "ESPECIALIZAÇÃO EM ENGENHARIA DE SEGURANÇA DO TRABALHO", bold=True,
-       space_after=48)
+center(doc, "ESCOLA POLITÉCNICA", bold=True)
+center(doc, "PROGRAMA DE EDUCAÇÃO CONTINUADA EM ENGENHARIA — PECE", bold=True)
+center(doc, "ESPECIALIZAÇÃO EM ENGENHARIA DE SEGURANÇA DO TRABALHO",
+       bold=True, space_after=48)
 for _ in range(3):
     center(doc, "")
 p = center(doc, "RODRIGO ZAMBON ", bold=True)
-r = p.add_run("[PREENCHER: nome completo]")
-r.bold = True
+r = p.add_run("[PREENCHER: nome completo]"); r.bold = True
 r.font.highlight_color = WD_COLOR_INDEX.YELLOW
-for _ in range(2):
-    center(doc, "")
-center(doc, "GESTÃO DIGITAL DE RISCOS PSICOSSOCIAIS CONFORME A NR-1:", bold=True, size=14)
-center(doc, "desenvolvimento e aplicação de uma plataforma de gestão de SST "
-       "em serviços de distribuição de energia elétrica", bold=True, size=14,
-       space_after=48)
+center(doc, ""); center(doc, "")
+center(doc, "GESTÃO DIGITAL DE RISCOS PSICOSSOCIAIS CONFORME A NR-1:",
+       bold=True, size=14)
+center(doc, "desenvolvimento e aplicação de uma plataforma de gestão de "
+       "segurança e saúde do trabalho em serviços de distribuição de energia "
+       "elétrica", bold=True, size=14, space_after=48)
 for _ in range(6):
     center(doc, "")
 center(doc, "São Paulo")
@@ -195,15 +193,15 @@ doc.add_page_break()
 
 # ===== Folha de rosto =========================================================
 p = center(doc, "RODRIGO ZAMBON ", bold=True)
-r = p.add_run("[PREENCHER: nome completo]")
-r.bold = True
+r = p.add_run("[PREENCHER: nome completo]"); r.bold = True
 r.font.highlight_color = WD_COLOR_INDEX.YELLOW
 for _ in range(3):
     center(doc, "")
-center(doc, "GESTÃO DIGITAL DE RISCOS PSICOSSOCIAIS CONFORME A NR-1:", bold=True, size=13)
-center(doc, "desenvolvimento e aplicação de uma plataforma de gestão de SST "
-       "em serviços de distribuição de energia elétrica", bold=True, size=13,
-       space_after=36)
+center(doc, "GESTÃO DIGITAL DE RISCOS PSICOSSOCIAIS CONFORME A NR-1:",
+       bold=True, size=13)
+center(doc, "desenvolvimento e aplicação de uma plataforma de gestão de "
+       "segurança e saúde do trabalho em serviços de distribuição de energia "
+       "elétrica", bold=True, size=13, space_after=36)
 nat = doc.add_paragraph()
 nat.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 nat.paragraph_format.left_indent = Cm(8)
@@ -216,75 +214,116 @@ rr.font.size = Pt(11)
 nat2 = doc.add_paragraph()
 nat2.paragraph_format.left_indent = Cm(8)
 nat2.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-rr = nat2.add_run("Orientador(a): Prof. ")
+rr = nat2.add_run("Supervisão da monografia: Profa. ")
 rr.font.size = Pt(11)
-rr = nat2.add_run("[PREENCHER: nome e titulação do orientador]")
-rr.font.size = Pt(11)
-rr.font.highlight_color = WD_COLOR_INDEX.YELLOW
-for _ in range(8):
+rr = nat2.add_run("[PREENCHER: nome da supervisora/orientador]")
+rr.font.size = Pt(11); rr.font.highlight_color = WD_COLOR_INDEX.YELLOW
+for _ in range(7):
     center(doc, "")
 center(doc, "São Paulo")
 center(doc, "2026")
 doc.add_page_break()
 
+# ===== Agradecimentos =========================================================
+center(doc, "AGRADECIMENTOS", bold=True, space_after=18)
+body(doc, "À CERPRO, pelo apoio e pela viabilização deste trabalho.")
+body(doc, "À supervisão da monografia e ao corpo docente do Programa de Educação "
+     "Continuada em Engenharia da Escola Politécnica da USP, pelas orientações "
+     "ao longo do curso.")
+body(doc, "À organização que abriu as portas para a aplicação deste estudo, aqui "
+     "preservada em anonimato, e aos trabalhadores que participaram "
+     "voluntariamente da avaliação.")
+body(doc, "À minha família, pelo apoio durante a especialização.")
+doc.add_page_break()
+
 # ===== Resumo =================================================================
 center(doc, "RESUMO", bold=True, space_after=18)
-add_body(doc, "A atualização da Norma Regulamentadora nº 1 (NR-1) pela Portaria MTE "
-         "nº 1.419/2024 tornou explícita a obrigação de identificar perigos e "
-         "avaliar riscos ocupacionais considerando os fatores de risco "
-         "psicossocial relacionados ao trabalho, no âmbito do Gerenciamento de "
-         "Riscos Ocupacionais (GRO) e do Programa de Gerenciamento de Riscos "
-         "(PGR). Este trabalho apresenta o desenvolvimento e a aplicação de uma "
-         "plataforma digital de baixo custo — denominada Psike — para "
-         "operacionalizar essa exigência em uma organização do setor de "
-         "distribuição de energia elétrica. A plataforma aplica um instrumento "
-         "estruturado de dez itens em seis dimensões psicossociais (carga e ritmo "
-         "de trabalho; autonomia e controle; clareza de papel; apoio social e de "
-         "liderança; reconhecimento; assédio e violência no trabalho), com coleta "
-         "anônima, classificação automática do risco por dimensão em três faixas "
-         "e geração automática do texto correspondente para o Inventário de "
-         "Riscos Ocupacionais (IRO) do PGR. Módulos complementares digitalizam a "
-         "permissão de trabalho para serviços em redes de distribuição (NR-10 e "
-         "NR-35), a Avaliação Ergonômica Preliminar (NR-17) e o registro e a "
-         "investigação de acidentes e quase acidentes, sobre a mesma base de "
-         "dados. A aplicação piloto foi conduzida em [PREENCHER: empresa, período "
-         "e número de respondentes]. Os resultados indicam [PREENCHER: síntese "
-         "dos resultados reais]. Conclui-se que a digitalização do processo "
-         "reduz o custo de conformidade com a NR-1 e melhora a rastreabilidade "
-         "exigida para os registros do PGR, respeitando o anonimato dos "
-         "respondentes e a Lei Geral de Proteção de Dados.", indent=False)
-add_body(doc, "Palavras-chave: riscos psicossociais; NR-1; gerenciamento de riscos "
-         "ocupacionais; saúde mental no trabalho; distribuição de energia "
-         "elétrica; transformação digital.", indent=False)
+body(doc, "A atualização da Norma Regulamentadora nº 1 (NR-1) pela Portaria MTE "
+     "nº 1.419/2024 tornou explícita a obrigação de identificar perigos e "
+     "avaliar riscos ocupacionais considerando os fatores de risco psicossocial "
+     "relacionados ao trabalho, no âmbito do Gerenciamento de Riscos "
+     "Ocupacionais (GRO) e do Programa de Gerenciamento de Riscos (PGR), com "
+     "exigibilidade a partir de 26 de maio de 2026. Este trabalho teve por "
+     "objetivo desenvolver e aplicar uma plataforma digital de baixo custo — "
+     "denominada Psike — para operacionalizar essa exigência em uma organização "
+     "do setor de distribuição de energia elétrica. Adotou-se pesquisa aplicada, "
+     "de natureza tecnológica, na forma de desenvolvimento de artefato seguido "
+     "de estudo de caso com aplicação piloto. A plataforma aplica um instrumento "
+     "estruturado de dez itens em seis dimensões psicossociais, com coleta "
+     "anônima, classificação automática do risco por dimensão em três faixas e "
+     "geração automática do texto correspondente para o Inventário de Riscos "
+     "Ocupacionais (IRO). Módulos complementares digitalizam a permissão de "
+     "trabalho para serviços em redes de distribuição (NR-10 e NR-35), a "
+     "Avaliação Ergonômica Preliminar (NR-17) e o registro e a investigação de "
+     "acidentes e quase acidentes, sobre a mesma base de dados. A aplicação "
+     "piloto foi conduzida em [PREENCHER: período e número de respondentes, sem "
+     "identificar a organização]. Os resultados indicam [PREENCHER: síntese dos "
+     "resultados reais]. Conclui-se que a digitalização do processo reduz o "
+     "custo de conformidade com a NR-1 e melhora a rastreabilidade exigida para "
+     "os registros do PGR, preservando o anonimato dos respondentes e a "
+     "conformidade com a Lei Geral de Proteção de Dados.", indent=False)
+body(doc, "Palavras-chave: riscos psicossociais; NR-1; gerenciamento de riscos "
+     "ocupacionais; saúde mental no trabalho; síndrome de burnout; distribuição "
+     "de energia elétrica.", indent=False)
 doc.add_page_break()
 
 # ===== Abstract ===============================================================
 center(doc, "ABSTRACT", bold=True, space_after=18)
-add_body(doc, "The update of Brazilian Regulatory Standard No. 1 (NR-1) by MTE "
-         "Ordinance No. 1,419/2024 made explicit the obligation to identify "
-         "hazards and assess occupational risks considering work-related "
-         "psychosocial risk factors within the Occupational Risk Management "
-         "(GRO) framework and the Risk Management Program (PGR). This study "
-         "presents the development and application of a low-cost digital "
-         "platform — named Psike — to operationalize this requirement in an "
-         "electric power distribution organization. The platform applies a "
-         "structured ten-item instrument across six psychosocial dimensions, "
-         "with anonymous data collection, automatic risk classification per "
-         "dimension into three bands, and automatic generation of the "
-         "corresponding text for the Occupational Risk Inventory (IRO). "
-         "Complementary modules digitize work permits for distribution network "
-         "services (NR-10 and NR-35), the Preliminary Ergonomic Assessment "
-         "(NR-17), and the recording and investigation of accidents and "
-         "near misses, on the same data repository. The pilot application was "
-         "conducted at [PREENCHER: company, period and sample]. Results indicate "
-         "[PREENCHER: summary of actual results]. The study concludes that "
-         "digitizing the process reduces the cost of compliance with NR-1 and "
-         "improves the traceability required for PGR records, while preserving "
-         "respondent anonymity and compliance with the Brazilian General Data "
-         "Protection Law (LGPD).", indent=False)
-add_body(doc, "Keywords: psychosocial risks; NR-1; occupational risk management; "
-         "mental health at work; electric power distribution; digital "
-         "transformation.", indent=False)
+body(doc, "The update of Brazilian Regulatory Standard No. 1 (NR-1) by MTE "
+     "Ordinance No. 1,419/2024 made explicit the obligation to identify hazards "
+     "and assess occupational risks considering work-related psychosocial risk "
+     "factors within the Occupational Risk Management (GRO) framework and the "
+     "Risk Management Program (PGR), enforceable from May 26, 2026. This study "
+     "aimed to develop and apply a low-cost digital platform — named Psike — to "
+     "operationalize this requirement in an electric power distribution "
+     "organization. Applied, technological research was adopted, as artifact "
+     "development followed by a case study with a pilot application. The "
+     "platform applies a structured ten-item instrument across six psychosocial "
+     "dimensions, with anonymous data collection, automatic risk classification "
+     "per dimension into three bands, and automatic generation of the "
+     "corresponding text for the Occupational Risk Inventory (IRO). "
+     "Complementary modules digitize work permits for distribution network "
+     "services (NR-10 and NR-35), the Preliminary Ergonomic Assessment (NR-17) "
+     "and the recording and investigation of accidents and near misses, on the "
+     "same data repository. The pilot was conducted with [PREENCHER: period and "
+     "sample]. Results indicate [PREENCHER: summary of actual results]. The "
+     "study concludes that digitizing the process reduces the cost of "
+     "compliance with NR-1 and improves the traceability required for PGR "
+     "records, while preserving respondent anonymity and compliance with the "
+     "Brazilian General Data Protection Law (LGPD).", indent=False)
+body(doc, "Keywords: psychosocial risks; NR-1; occupational risk management; "
+     "mental health at work; burnout syndrome; electric power distribution.",
+     indent=False)
+doc.add_page_break()
+
+# ===== Lista de siglas ========================================================
+center(doc, "LISTA DE SIGLAS", bold=True, space_after=18)
+SIGLAS = [
+    ("AEP", "Análise Ergonômica Preliminar"),
+    ("AET", "Análise Ergonômica do Trabalho"),
+    ("APR", "Análise Preliminar de Risco"),
+    ("CAT", "Comunicação de Acidente de Trabalho"),
+    ("CID-11", "Classificação Internacional de Doenças, 11ª revisão"),
+    ("CLT", "Consolidação das Leis do Trabalho"),
+    ("COPSOQ", "Copenhagen Psychosocial Questionnaire"),
+    ("GRO", "Gerenciamento de Riscos Ocupacionais"),
+    ("INSS", "Instituto Nacional do Seguro Social"),
+    ("IRO", "Inventário de Riscos Ocupacionais"),
+    ("ISO", "International Organization for Standardization"),
+    ("LGPD", "Lei Geral de Proteção de Dados Pessoais"),
+    ("MTE", "Ministério do Trabalho e Emprego"),
+    ("NR", "Norma Regulamentadora"),
+    ("OMS", "Organização Mundial da Saúde"),
+    ("PGR", "Programa de Gerenciamento de Riscos"),
+    ("SEP", "Sistema Elétrico de Potência"),
+    ("SST", "Segurança e Saúde do Trabalho"),
+]
+for sig, desc in SIGLAS:
+    p = doc.add_paragraph()
+    p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    p.paragraph_format.space_after = Pt(4)
+    r = p.add_run(sig + " — "); r.bold = True
+    p.add_run(desc)
 doc.add_page_break()
 
 # ===== Sumário ================================================================
@@ -292,461 +331,678 @@ center(doc, "SUMÁRIO", bold=True, space_after=18)
 add_toc(doc)
 doc.add_page_break()
 
-# ===== 1 INTRODUÇÃO ===========================================================
-doc.add_heading("1 INTRODUÇÃO", level=1)
+# ============================================================ 1 INTRODUÇÃO ====
+h1(doc, "1 INTRODUÇÃO")
 
-doc.add_heading("1.1 Contextualização", level=2)
-add_body(doc, "Os transtornos mentais e comportamentais relacionados ao trabalho "
-         "ocupam posição crescente entre as causas de afastamento no Brasil, e a "
-         "Organização Mundial da Saúde reconhece o ambiente de trabalho como "
-         "determinante relevante da saúde mental dos trabalhadores (WHO, 2022). "
-         "Nesse cenário, a Portaria MTE nº 1.419, de 27 de agosto de 2024, "
-         "atualizou a Norma Regulamentadora nº 1 (NR-1) para explicitar que o "
-         "levantamento preliminar de perigos e a avaliação de riscos do "
-         "Gerenciamento de Riscos Ocupacionais (GRO) devem contemplar os fatores "
-         "de risco psicossocial relacionados ao trabalho, ao lado dos "
-         "tradicionais agentes físicos, químicos, biológicos, ergonômicos e de "
-         "acidentes (BRASIL, 2024). A exigibilidade da nova redação passou a "
-         "valer, após prorrogação, a partir de 26 de maio de 2026, alcançando "
-         "todo empregador regido pela Consolidação das Leis do Trabalho.")
-add_body(doc, "A obrigação não se resume a aplicar um questionário: a organização "
-         "deve identificar os fatores, avaliá-los, classificá-los, registrá-los "
-         "no Inventário de Riscos Ocupacionais (IRO) do Programa de "
-         "Gerenciamento de Riscos (PGR), estabelecer medidas de prevenção com "
-         "plano de ação e manter os registros disponíveis e rastreáveis por "
-         "longos períodos. Para a maioria das organizações brasileiras — em "
-         "especial as de pequeno e médio porte e as equipes de SST enxutas — "
-         "esse ciclo completo ainda é executado em papel ou em planilhas "
-         "avulsas, com baixa rastreabilidade e alto custo operacional.")
-add_body(doc, "No setor de distribuição de energia elétrica, objeto do estudo de "
-         "caso deste trabalho, os fatores psicossociais convivem com riscos "
-         "ocupacionais graves e bem regulamentados — trabalho em instalações "
-         "elétricas energizadas e desenergizadas (NR-10), inclusive no Sistema "
-         "Elétrico de Potência (SEP), e trabalho em altura em postes e "
-         "estruturas (NR-35). Pressão por restabelecimento rápido do "
-         "fornecimento, trabalho em turnos e sobreaviso, exposição a intempéries "
-         "e o próprio convívio cotidiano com o risco de acidentes fatais "
-         "configuram um conjunto de demandas psicossociais característico da "
-         "atividade, o que torna o setor um campo particularmente pertinente "
-         "para a gestão integrada proposta.")
+h2(doc, "1.1 Contextualização")
+body(doc, "A saúde mental relacionada ao trabalho consolidou-se, na última "
+     "década, como uma das principais questões de segurança e saúde "
+     "ocupacional. Os transtornos mentais e comportamentais figuram entre as "
+     "maiores causas de afastamento previdenciário no Brasil, e levantamento da "
+     "Associação Nacional de Medicina do Trabalho, com base em dados oficiais do "
+     "Instituto Nacional do Seguro Social, apontou crescimento expressivo dos "
+     "afastamentos por problemas de saúde mental entre 2023 e 2025 (ANAMT, "
+     "2026). No plano internacional, a Organização Mundial da Saúde reconhece o "
+     "ambiente de trabalho como determinante relevante da saúde mental e "
+     "recomenda intervenções dirigidas às condições de trabalho como medida "
+     "primária de prevenção (WHO, 2022).")
+body(doc, "Nesse cenário, a Portaria MTE nº 1.419, de 27 de agosto de 2024, "
+     "atualizou a NR-1 para explicitar que o levantamento preliminar de perigos "
+     "e a avaliação de riscos do Gerenciamento de Riscos Ocupacionais devem "
+     "contemplar os fatores de risco psicossocial relacionados ao trabalho, ao "
+     "lado dos tradicionais agentes físicos, químicos, biológicos, ergonômicos "
+     "e de acidentes (BRASIL, 2024). Após ajustes de cronograma promovidos pela "
+     "Portaria MTE nº 765/2025, a exigibilidade da nova redação passou a valer a "
+     "partir de 26 de maio de 2026, alcançando todo empregador regido pela "
+     "Consolidação das Leis do Trabalho.")
+body(doc, "A obrigação não se resume a aplicar um questionário. A organização "
+     "deve identificar os fatores, avaliá-los, classificá-los, registrá-los no "
+     "Inventário de Riscos Ocupacionais do Programa de Gerenciamento de Riscos, "
+     "estabelecer medidas de prevenção com plano de ação e manter os registros "
+     "disponíveis e rastreáveis pelos prazos previstos na norma. Para a maioria "
+     "das organizações brasileiras — em especial as de pequeno e médio porte e "
+     "as equipes de SST enxutas — esse ciclo completo ainda é executado em papel "
+     "ou em planilhas avulsas, com baixa rastreabilidade e alto custo "
+     "operacional.")
+body(doc, "No setor de distribuição de energia elétrica, objeto do estudo de "
+     "caso deste trabalho, os fatores psicossociais convivem com riscos "
+     "ocupacionais graves e fortemente regulamentados: o trabalho em "
+     "instalações elétricas energizadas e desenergizadas, inclusive no Sistema "
+     "Elétrico de Potência, regido pela NR-10, e o trabalho em altura em postes "
+     "e estruturas, regido pela NR-35. Estudo clássico com trabalhadores desse "
+     "setor identificou prevalência de 20,3% de transtornos mentais comuns, "
+     "associada à combinação de alta demanda psicológica, baixo controle e "
+     "baixo apoio social (SOUZA et al., 2010). Pressão por restabelecimento "
+     "rápido do fornecimento, trabalho em turnos e sobreaviso, exposição a "
+     "intempéries e a convivência cotidiana com o risco de acidente fatal "
+     "configuram um conjunto de demandas psicossociais característico da "
+     "atividade, o que torna o setor particularmente pertinente para a gestão "
+     "integrada proposta.")
 
-doc.add_heading("1.2 Justificativa", level=2)
-add_body(doc, "Há uma lacuna prática entre a exigência normativa e os instrumentos "
-         "disponíveis. Soluções comerciais de gestão de SST tendem a ter custo "
-         "incompatível com organizações menores; questionários validados de "
-         "grande porte, como o COPSOQ, exigem competência estatística para "
-         "aplicação e interpretação; e a alternativa usual — formulários "
-         "impressos tabulados manualmente — fragiliza justamente os atributos "
-         "que a NR-1 passou a exigir: anonimato na coleta, consistência na "
-         "classificação e rastreabilidade dos registros ao longo do tempo.")
-add_body(doc, "Este trabalho se justifica, portanto, por demonstrar a viabilidade "
-         "técnica e econômica de uma solução digital de custo praticamente "
-         "nulo, construída com tecnologias acessíveis (página web autocontida e "
-         "serviços gratuitos de planilha em nuvem), que operacionaliza o ciclo "
-         "completo exigido pela NR-1 — da coleta anônima à redação automática "
-         "da seção correspondente do IRO — e que se estende, sobre a mesma base "
-         "de dados, a outros processos de SST ainda manuais na organização "
-         "estudada: permissões de trabalho em campo, avaliação ergonômica "
-         "preliminar e registro de acidentes e quase acidentes.")
+h2(doc, "1.2 Problema de pesquisa")
+body(doc, "Diante da nova exigência da NR-1, coloca-se o seguinte problema: como "
+     "operacionalizar, de forma tecnicamente consistente e economicamente "
+     "viável, a identificação, a avaliação e a documentação dos fatores de "
+     "risco psicossocial em uma organização com equipe de SST reduzida, "
+     "preservando o anonimato dos trabalhadores e produzindo registros "
+     "rastreáveis para o PGR?")
 
-doc.add_heading("1.3 Objetivos", level=2)
-doc.add_heading("1.3.1 Objetivo geral", level=3)
-add_body(doc, "Desenvolver e aplicar uma plataforma digital para identificação, "
-         "avaliação e documentação de fatores de risco psicossocial conforme a "
-         "NR-1, integrada à gestão de riscos ocupacionais de uma organização do "
-         "setor de distribuição de energia elétrica.")
-doc.add_heading("1.3.2 Objetivos específicos", level=3)
-add_bullet(doc, "Sistematizar os requisitos da NR-1 (redação da Portaria MTE nº "
-           "1.419/2024) e as referências técnicas aplicáveis à avaliação de "
-           "fatores psicossociais, em especial o Guia do MTE e a ISO 45003;")
-add_bullet(doc, "Construir um instrumento de avaliação enxuto (dez itens em seis "
-           "dimensões), com escala do tipo Likert de cinco pontos, coleta "
-           "anônima e critérios objetivos de classificação de risco;")
-add_bullet(doc, "Implementar a plataforma digital (frontend web autocontido e "
-           "backend gratuito em nuvem) com painel agregado e geração automática "
-           "de texto para o Inventário de Riscos Ocupacionais;")
-add_bullet(doc, "Digitalizar processos complementares de SST da organização: "
-           "permissão de trabalho para serviços em redes de distribuição "
-           "(NR-10/NR-35), Avaliação Ergonômica Preliminar (NR-17) e registro "
-           "e investigação de acidentes e quase acidentes;")
-add_bullet(doc, "Aplicar a plataforma em caráter piloto e discutir os resultados, "
-           "as limitações e as condições de generalização da solução.")
+h2(doc, "1.3 Justificativa")
+body(doc, "Há uma lacuna prática entre a exigência normativa e os instrumentos "
+     "disponíveis. Soluções comerciais de gestão de SST tendem a ter custo "
+     "incompatível com organizações menores; questionários validados de grande "
+     "porte, como o COPSOQ, exigem competência estatística para aplicação e "
+     "interpretação (KRISTENSEN et al., 2005); e a alternativa usual — "
+     "formulários impressos tabulados manualmente — fragiliza justamente os "
+     "atributos que a NR-1 passou a exigir: anonimato na coleta, consistência na "
+     "classificação e rastreabilidade dos registros ao longo do tempo.")
+body(doc, "Este trabalho se justifica por demonstrar a viabilidade técnica e "
+     "econômica de uma solução digital de custo praticamente nulo, construída "
+     "com tecnologias acessíveis, que operacionaliza o ciclo completo exigido "
+     "pela NR-1 — da coleta anônima à redação automática da seção "
+     "correspondente do IRO — e que se estende, sobre a mesma base de dados, a "
+     "outros processos de SST ainda manuais na organização estudada. A "
+     "relevância social é reforçada pelo reconhecimento da síndrome de burnout "
+     "como doença ocupacional na 11ª revisão da Classificação Internacional de "
+     "Doenças, adotada oficialmente no Brasil a partir de 2025 (OMS, 2019; "
+     "TREML et al., 2025), o que amplia as consequências jurídicas e "
+     "previdenciárias da ausência de gestão dos fatores psicossociais.")
 
-doc.add_heading("1.4 Estrutura do trabalho", level=2)
-add_body(doc, "Além desta introdução, o trabalho está organizado em quatro seções. "
-         "A seção 2 apresenta a fundamentação teórica e normativa. A seção 3 "
-         "descreve a metodologia, incluindo a arquitetura da plataforma e o "
-         "instrumento de avaliação. A seção 4 apresenta e discute os resultados "
-         "da implementação e da aplicação piloto. A seção 5 traz as "
-         "considerações finais e sugestões de trabalhos futuros.")
+h2(doc, "1.4 Objetivos")
+h3(doc, "1.4.1 Objetivo geral")
+body(doc, "Desenvolver e aplicar uma plataforma digital para identificação, "
+     "avaliação e documentação de fatores de risco psicossocial conforme a "
+     "NR-1, integrada à gestão de riscos ocupacionais de uma organização do "
+     "setor de distribuição de energia elétrica.")
+h3(doc, "1.4.2 Objetivos específicos")
+bullet(doc, "Sistematizar os requisitos da NR-1 (redação da Portaria MTE nº "
+       "1.419/2024) e as referências técnicas aplicáveis à avaliação de fatores "
+       "psicossociais, em especial a ISO 45003 e as diretrizes da OMS;")
+bullet(doc, "Revisar a literatura recente sobre fatores de risco psicossocial e "
+       "síndrome de burnout, fundamentando as definições e as escolhas do "
+       "instrumento;")
+bullet(doc, "Construir um instrumento de avaliação enxuto (dez itens em seis "
+       "dimensões), com escala do tipo Likert de cinco pontos, coleta anônima e "
+       "critérios objetivos de classificação de risco;")
+bullet(doc, "Implementar a plataforma digital (frontend web autocontido e "
+       "backend gratuito em nuvem), com painel agregado e geração automática de "
+       "texto para o Inventário de Riscos Ocupacionais;")
+bullet(doc, "Digitalizar processos complementares de SST: permissão de trabalho "
+       "para serviços em redes de distribuição (NR-10/NR-35), Avaliação "
+       "Ergonômica Preliminar (NR-17) e registro e investigação de acidentes e "
+       "quase acidentes;")
+bullet(doc, "Aplicar a plataforma em caráter piloto, preservando o anonimato, e "
+       "discutir os resultados, as limitações e as condições de generalização.")
+
+h2(doc, "1.5 Estrutura do trabalho")
+body(doc, "Além desta introdução, o trabalho está organizado em quatro seções. "
+     "A seção 2 apresenta a revisão de literatura e o marco normativo, "
+     "incluindo as definições de fatores psicossociais, os modelos teóricos, a "
+     "síndrome de burnout e o setor elétrico. A seção 3 descreve a metodologia, "
+     "com o passo a passo da pesquisa, os aspectos éticos, a arquitetura da "
+     "plataforma e o instrumento. A seção 4 apresenta e discute, de forma "
+     "integrada, os resultados da implementação e da aplicação piloto à luz da "
+     "literatura. A seção 5 traz a conclusão. Seguem-se as referências e os "
+     "apêndices.")
 doc.add_page_break()
 
-# ===== 2 FUNDAMENTAÇÃO ========================================================
-doc.add_heading("2 FUNDAMENTAÇÃO TEÓRICA E NORMATIVA", level=1)
+# ============================================== 2 REVISÃO DE LITERATURA ========
+h1(doc, "2 REVISÃO DE LITERATURA E MARCO NORMATIVO")
+body(doc, "Esta seção reúne as definições, os modelos e as evidências que "
+     "fundamentam o trabalho. Privilegiaram-se referências dos últimos cinco "
+     "anos para o estado atual do tema, complementadas por obras seminais dos "
+     "modelos teóricos e por documentos normativos vigentes.")
 
-doc.add_heading("2.1 O GRO e o PGR na NR-1", level=2)
-add_body(doc, "Desde a reformulação promovida em 2020, a NR-1 estabelece o "
-         "Gerenciamento de Riscos Ocupacionais como processo contínuo composto "
-         "por levantamento preliminar de perigos, avaliação de riscos, "
-         "classificação, implementação de medidas de prevenção e acompanhamento "
-         "do controle. O PGR materializa esse processo em, no mínimo, dois "
-         "documentos: o Inventário de Riscos Ocupacionais e o Plano de Ação. A "
-         "norma exige que o inventário seja mantido atualizado e que o "
-         "histórico das suas atualizações seja retido por período mínimo "
-         "estabelecido na própria NR-1 (BRASIL, 2024).")
-add_body(doc, "Com a Portaria MTE nº 1.419/2024, os fatores de risco psicossocial "
-         "relacionados ao trabalho passaram a integrar expressamente o rol de "
-         "perigos a considerar no GRO. Na prática, isso equipara o tratamento "
-         "documental dos fatores psicossociais ao dos demais agentes: precisam "
-         "ser identificados, avaliados com método consistente, classificados, "
-         "inscritos no IRO e vinculados a medidas de prevenção com "
-         "responsáveis e prazos no Plano de Ação.")
+h2(doc, "2.1 Trabalho e saúde mental: a emergência do risco psicossocial")
+body(doc, "A relação entre organização do trabalho e adoecimento psíquico é "
+     "objeto de estudo consolidado. A transição de um perfil de riscos "
+     "predominantemente físicos para um perfil em que os fatores organizacionais "
+     "e psicossociais ganham peso acompanha a mudança na natureza do trabalho — "
+     "maior carga cognitiva, intensificação do ritmo, pressão por resultados e "
+     "novas formas de organização. A OMS, em suas diretrizes sobre saúde mental "
+     "no trabalho, estima impacto econômico expressivo da perda de "
+     "produtividade associada a depressão e ansiedade e recomenda que as "
+     "intervenções atuem primeiro sobre as condições de trabalho, e só "
+     "secundariamente sobre o indivíduo (WHO, 2022).")
 
-doc.add_heading("2.2 Fatores de risco psicossocial: conceito e dimensões", level=2)
-add_body(doc, "Fatores de risco psicossocial são aspectos da concepção, organização "
-         "e gestão do trabalho e de seu contexto social que têm potencial de "
-         "causar dano psicológico ou físico ao trabalhador (LEKA; JAIN, 2010). "
-         "Modelos clássicos da literatura sustentam a seleção de dimensões de "
-         "avaliação: o modelo demanda-controle de Karasek (1979) relaciona o "
-         "adoecimento à combinação de altas exigências com baixa autonomia; o "
-         "modelo esforço-recompensa de Siegrist (1996) destaca o desequilíbrio "
-         "entre o esforço despendido e o reconhecimento recebido; e "
-         "instrumentos multidimensionais como o COPSOQ (KRISTENSEN et al., "
-         "2005) consolidam dimensões como demandas quantitativas, apoio social, "
-         "clareza de papel e comportamentos ofensivos.")
-add_body(doc, "Com base nessas referências e nos exemplos do Guia do MTE, este "
-         "trabalho adota seis dimensões de avaliação: carga e ritmo de "
-         "trabalho; autonomia e controle; clareza de papel; apoio social e de "
-         "liderança; reconhecimento; e assédio e violência no trabalho.")
+h2(doc, "2.2 Definições de fatores de risco psicossocial")
+body(doc, "Não há uma definição única de fator de risco psicossocial; convém, "
+     "portanto, explicitar as principais e justificar a adotada. Para Leka e "
+     "Jain (2010), em documento da OMS, fatores de risco psicossocial são "
+     "aspectos da concepção, organização e gestão do trabalho, e de seus "
+     "contextos social e ambiental, que têm potencial de causar dano "
+     "psicológico ou físico. A ISO 45003:2021 define-os como fatores de "
+     "natureza social, organizacional e gerencial que podem representar risco à "
+     "saúde e à segurança, e os organiza em três grupos: os relativos à "
+     "organização do trabalho, os relativos a fatores sociais no trabalho e os "
+     "relativos ao ambiente e aos equipamentos (ISO, 2021).")
+body(doc, "Instituições europeias de referência convergem nessa direção. A "
+     "Agência Europeia para a Segurança e Saúde no Trabalho (EU-OSHA) trata os "
+     "riscos psicossociais como decorrentes de deficiências na concepção, "
+     "organização e gestão do trabalho, citando entre eles as cargas de "
+     "trabalho excessivas, as exigências contraditórias, a falta de clareza "
+     "sobre a função, a baixa participação nas decisões e o assédio. O Health "
+     "and Safety Executive britânico, por sua vez, operacionaliza a avaliação "
+     "por meio dos Management Standards, que organizam os fatores em seis "
+     "categorias — demanda, controle, apoio, relacionamentos, função e mudança "
+     "—, das quais este trabalho aproveita diretamente a estrutura de "
+     "dimensões.")
+body(doc, "No plano regulatório brasileiro, a NR-1 não fecha uma definição "
+     "taxativa, mas remete a exemplos de fatores a considerar, alinhados aos "
+     "documentos internacionais e ao guia publicado pelo Ministério do Trabalho "
+     "e Emprego (BRASIL, 2024; BRASIL, 2025). A literatura nacional adverte, "
+     "contudo, que a incorporação dos fatores psicossociais à gestão de SST "
+     "enfrenta limitações quando reduzida a uma abordagem individualizante, "
+     "dissociada da organização do trabalho — razão pela qual se insiste no "
+     "caráter coletivo da avaliação. Adota-se, neste trabalho, a definição da "
+     "ISO 45003 por ser a mais recente, específica e operacionalizável: ela "
+     "nomeia categorias de fatores que se traduzem diretamente em dimensões de "
+     "avaliação, o que orienta a construção do instrumento apresentado na seção "
+     "3.")
 
-doc.add_heading("2.3 O marco regulatório brasileiro", level=2)
-add_body(doc, "A Portaria MTE nº 1.419/2024 alterou a NR-1 para incluir os fatores "
-         "de risco psicossocial no processo de identificação de perigos e "
-         "avaliação de riscos. Para orientar a aplicação, o Ministério do "
-         "Trabalho e Emprego publicou guia informativo sobre fatores de riscos "
-         "psicossociais relacionados ao trabalho, com exemplos de fatores, "
-         "orientações de método e esclarecimentos sobre o que a fiscalização "
-         "espera encontrar documentado (BRASIL, 2025). O guia enfatiza que a "
-         "avaliação deve ser coletiva e organizacional — não um diagnóstico "
-         "clínico individual — e que o anonimato da coleta é condição para a "
-         "fidedignidade das respostas.")
-add_body(doc, "Complementarmente, a Lei nº 13.709/2018 (LGPD) condiciona o "
-         "tratamento de dados pessoais, o que reforça a opção metodológica por "
-         "coleta anônima e análise agregada: não se coletam nome, matrícula ou "
-         "qualquer identificador individual, apenas o setor, para permitir a "
-         "estratificação mínima exigida pela gestão.")
+h2(doc, "2.3 Modelos teóricos de estresse ocupacional")
+body(doc, "A seleção das dimensões de avaliação apoia-se em modelos clássicos, "
+     "cuja vigência é reafirmada pela literatura recente. O modelo "
+     "demanda-controle, de Karasek (1979), relaciona o adoecimento à combinação "
+     "de altas exigências psicológicas com baixa latitude de decisão "
+     "(autonomia): as situações de maior risco são as de alta demanda e baixo "
+     "controle. Extensões do modelo incorporam o apoio social como terceiro "
+     "eixo protetor. O modelo esforço-recompensa, de Siegrist (1996), destaca o "
+     "desequilíbrio entre o esforço despendido e as recompensas recebidas — "
+     "salário, estima, reconhecimento e segurança — como fonte de estresse "
+     "crônico.")
+body(doc, "O modelo demanda-controle foi ampliado por Johnson e Hall (1988), "
+     "que acrescentaram o apoio social como terceira dimensão, dando origem ao "
+     "modelo demanda-controle-apoio: a situação de maior risco — denominada "
+     "iso-strain — combina alta demanda, baixo controle e baixo apoio social. "
+     "Essa tríade é particularmente adequada ao trabalho de campo em equipes, "
+     "como as de distribuição de energia, em que o apoio dos colegas e da "
+     "supervisão tem papel protetor direto.")
+body(doc, "Esses modelos têm sustentação empírica no próprio setor elétrico "
+     "brasileiro: Souza et al. (2010), ao estudarem 158 trabalhadores da "
+     "manutenção de uma empresa de energia, encontraram maior prevalência de "
+     "transtornos mentais comuns nos estratos de baixo controle (razão de "
+     "prevalência de 1,34), alta demanda psicológica (2,31) e baixo apoio "
+     "social (2,82), confirmando a pertinência do modelo "
+     "demanda-controle-apoio para a atividade. Instrumentos multidimensionais, "
+     "como o COPSOQ (KRISTENSEN et al., 2005), consolidam dimensões como "
+     "demandas quantitativas, influência no trabalho, apoio social, clareza de "
+     "papel e comportamentos ofensivos, e servem de referência para a seleção "
+     "de itens. A convergência entre os modelos de Karasek, de Siegrist e os "
+     "instrumentos multidimensionais sustenta a escolha das seis dimensões "
+     "adotadas neste trabalho, detalhada na seção 3.")
 
-doc.add_heading("2.4 ISO 45003 e referências internacionais", level=2)
-add_body(doc, "A ISO 45003:2021 é a primeira norma internacional dedicada à gestão "
-         "de riscos psicossociais, estruturada como diretriz complementar à "
-         "ISO 45001:2018. Ela organiza os fatores em três grupos — organização "
-         "do trabalho, fatores sociais e ambiente/equipamentos — e recomenda a "
-         "integração da gestão psicossocial ao sistema de gestão de SST "
-         "existente, em vez de um programa paralelo (ISO, 2021). A Organização "
-         "Mundial da Saúde, em suas diretrizes sobre saúde mental no trabalho, "
-         "recomenda intervenções organizacionais dirigidas às condições de "
-         "trabalho como medida primária, antes de intervenções individuais "
-         "(WHO, 2022). Essas referências sustentam duas decisões de projeto da "
-         "plataforma: avaliar a organização (e não o indivíduo) e integrar o "
-         "resultado diretamente ao PGR.")
+h2(doc, "2.4 Síndrome de burnout")
+body(doc, "Entre os desfechos associados à exposição prolongada a fatores "
+     "psicossociais adversos, a síndrome de burnout ocupa posição central. "
+     "Maslach e Jackson (1981) a caracterizaram por três dimensões: exaustão "
+     "emocional, despersonalização (ou cinismo) e redução da realização "
+     "pessoal. Revisões posteriores consolidaram o conceito como resposta "
+     "prolongada a estressores crônicos, de natureza interpessoal e "
+     "organizacional, no trabalho (MASLACH; SCHAUFELI; LEITER, 2001).")
+body(doc, "O reconhecimento institucional do burnout avançou de forma decisiva. "
+     "Na 11ª revisão da Classificação Internacional de Doenças (CID-11), a "
+     "OMS incluiu o burn-out (código QD85) como fenômeno ocupacional, definido "
+     "como síndrome resultante de estresse crônico no trabalho que não foi "
+     "administrado com sucesso, caracterizado por exaustão, distanciamento "
+     "mental do trabalho e redução da eficácia profissional (OMS, 2019). No "
+     "Brasil, a adoção oficial da CID-11 a partir de 2025 reforçou o "
+     "enquadramento do burnout como condição relacionada ao trabalho, com "
+     "consequências para o nexo técnico e para a emissão de Comunicação de "
+     "Acidente de Trabalho.")
+body(doc, "A mensuração do burnout apoia-se historicamente no Maslach Burnout "
+     "Inventory, que avalia as três dimensões do construto. Do ponto de vista "
+     "preventivo, a literatura é convergente com a abordagem organizacional: "
+     "como o burnout resulta de estressores crônicos do contexto de trabalho, "
+     "as intervenções mais eficazes atuam sobre carga, controle, recompensa, "
+     "comunidade, justiça e valores, e não apenas sobre a resiliência "
+     "individual (MASLACH; SCHAUFELI; LEITER, 2001). Isso reforça a lógica da "
+     "NR-1 de tratar os fatores psicossociais como perigos organizacionais a "
+     "serem geridos, e não como fragilidades individuais.")
+body(doc, "O quadro epidemiológico brasileiro reforça a urgência do tema. "
+     "Estudo de série temporal com dados nacionais indicou tendência de "
+     "crescimento das notificações de burnout entre 2014 e 2024, com maior "
+     "concentração nas regiões Sudeste e Nordeste e pico em 2024, e "
+     "predominância entre mulheres e na faixa de 35 a 49 anos (TREML et al., "
+     "2025). Somados aos dados de afastamento do INSS compilados pela ANAMT "
+     "(2026), esses achados evidenciam que a gestão dos fatores psicossociais "
+     "prevista na NR-1 é também uma medida de prevenção de um desfecho já "
+     "reconhecido como doença ocupacional.")
+body(doc, "O reconhecimento do burnout como condição relacionada ao trabalho "
+     "tem consequências jurídicas e previdenciárias relevantes. Uma vez "
+     "estabelecido o nexo entre o adoecimento e as condições de trabalho, "
+     "cabe a emissão de Comunicação de Acidente de Trabalho e podem incidir os "
+     "efeitos de estabilidade e de responsabilização previstos na legislação. "
+     "Para a organização, a ausência de gestão documentada dos fatores "
+     "psicossociais — agora exigida pela NR-1 — enfraquece sua posição diante "
+     "de eventual questionamento de nexo, o que soma o argumento de "
+     "conformidade legal ao argumento de prevenção em saúde.")
 
-doc.add_heading("2.5 Instrumentos de avaliação psicossocial", level=2)
-add_body(doc, "Entre os instrumentos consolidados destacam-se o COPSOQ "
-         "(Copenhagen Psychosocial Questionnaire), o Job Content Questionnaire "
-         "de Karasek e as ferramentas de indicadores de gestão do Health and "
-         "Safety Executive britânico. São instrumentos robustos, porém extensos "
-         "— versões médias do COPSOQ ultrapassam oitenta itens — e sua "
-         "aplicação e interpretação exigem competência técnica pouco disponível "
-         "em equipes de SST enxutas. Para viabilizar a adoção, este trabalho "
-         "optou por um instrumento próprio e enxuto, de dez itens, com uma a "
-         "duas questões por dimensão, assumindo explicitamente o caráter de "
-         "triagem (screening): o objetivo é priorizar dimensões para "
-         "aprofundamento e ação, e não produzir diagnóstico psicométrico "
-         "definitivo. Essa limitação é discutida na seção 4.")
+h2(doc, "2.5 O Gerenciamento de Riscos Ocupacionais e o PGR na NR-1")
+body(doc, "Desde a reformulação de 2020, a NR-1 estabelece o Gerenciamento de "
+     "Riscos Ocupacionais como processo contínuo composto por levantamento "
+     "preliminar de perigos, avaliação de riscos, classificação, implementação "
+     "de medidas de prevenção e acompanhamento do controle. O PGR materializa "
+     "esse processo em, no mínimo, dois documentos: o Inventário de Riscos "
+     "Ocupacionais e o Plano de Ação. A norma exige que o inventário seja "
+     "mantido atualizado e que o histórico de suas atualizações seja retido "
+     "(BRASIL, 2024).")
+body(doc, "Com a Portaria MTE nº 1.419/2024, os fatores de risco psicossocial "
+     "passaram a integrar expressamente o rol de perigos a considerar no GRO. "
+     "Na prática, isso equipara o tratamento documental dos fatores "
+     "psicossociais ao dos demais agentes: precisam ser identificados, "
+     "avaliados com método consistente, classificados, inscritos no IRO e "
+     "vinculados a medidas de prevenção com responsáveis e prazos no Plano de "
+     "Ação. O guia informativo do MTE sobre fatores de riscos psicossociais "
+     "orienta que a avaliação seja coletiva e organizacional — e não um "
+     "diagnóstico clínico individual — e que o anonimato da coleta é condição "
+     "para a fidedignidade das respostas (BRASIL, 2025).")
 
-doc.add_heading("2.6 Particularidades do setor de distribuição de energia elétrica",
-                level=2)
-add_body(doc, "As atividades em redes de distribuição são regidas principalmente "
-         "pela NR-10, que estabelece requisitos para serviços em instalações "
-         "elétricas desenergizadas (procedimentos de desenergização, bloqueio e "
-         "aterramento temporário) e energizadas, inclusive no Sistema Elétrico "
-         "de Potência, exigindo trabalhadores autorizados e, para o SEP, "
-         "treinamento complementar específico (BRASIL, 2019). O trabalho em "
-         "postes e estruturas elevadas sujeita-se ainda à NR-35. A rotina "
-         "dessas equipes combina demandas físicas e cognitivas elevadas com "
-         "fatores psicossociais típicos: pressão temporal no restabelecimento "
-         "de fornecimento, regime de turnos e sobreaviso, trabalho a céu aberto "
-         "sob intempéries e a convivência permanente com risco de acidente "
-         "grave ou fatal — contexto no qual falhas de atenção têm consequência "
-         "severa, o que torna a gestão psicossocial também uma medida de "
-         "prevenção de acidentes.")
+h2(doc, "2.6 ISO 45003 e diretrizes internacionais")
+body(doc, "A ISO 45003:2021 é a primeira norma internacional dedicada à gestão "
+     "de riscos psicossociais, concebida como diretriz complementar à ISO "
+     "45001:2018. Ela recomenda a integração da gestão psicossocial ao sistema "
+     "de gestão de SST existente, em vez de um programa paralelo, e detalha "
+     "exemplos de fatores em cada um dos três grupos que estabelece (ISO, "
+     "2021). Alinhada a ela, a OMS propõe uma abordagem escalonada, priorizando "
+     "medidas organizacionais (WHO, 2022). Essas referências sustentam duas "
+     "decisões de projeto da plataforma: avaliar a organização, e não o "
+     "indivíduo, e integrar o resultado diretamente ao PGR.")
 
-doc.add_heading("2.7 Transformação digital na gestão de SST", level=2)
-add_body(doc, "A digitalização de processos de SST tem como benefícios documentados "
-         "a padronização dos registros, a redução do tempo entre coleta e "
-         "análise, a eliminação de transcrições manuais e a rastreabilidade "
-         "exigida por auditorias e fiscalização. No contexto deste trabalho, a "
-         "opção por tecnologias gratuitas e de baixa barreira técnica (página "
-         "web estática e planilha em nuvem com script de automação) é uma "
-         "decisão deliberada de projeto, voltada à replicabilidade da solução "
-         "por profissionais de SST sem apoio de equipe de tecnologia da "
-         "informação.")
+h2(doc, "2.7 Instrumentos de avaliação psicossocial")
+body(doc, "Entre os instrumentos consolidados destacam-se o COPSOQ, o Job "
+     "Content Questionnaire, derivado do modelo de Karasek, e as ferramentas de "
+     "indicadores de gestão do Health and Safety Executive britânico. São "
+     "instrumentos robustos, porém extensos — versões médias do COPSOQ "
+     "ultrapassam oitenta itens — e sua aplicação e interpretação exigem "
+     "competência técnica pouco disponível em equipes de SST enxutas. Por isso, "
+     "este trabalho optou por um instrumento próprio e enxuto, de dez itens, "
+     "assumindo explicitamente o caráter de triagem: o objetivo é priorizar "
+     "dimensões para aprofundamento e ação, e não produzir diagnóstico "
+     "psicométrico definitivo. Essa opção e suas limitações são discutidas nas "
+     "seções 3 e 4.")
+
+h2(doc, "2.8 Riscos psicossociais no setor de distribuição de energia elétrica")
+body(doc, "As atividades em redes de distribuição são regidas principalmente "
+     "pela NR-10, que estabelece requisitos para serviços em instalações "
+     "elétricas desenergizadas — com a sequência de desenergização, "
+     "impedimento de reenergização, constatação de ausência de tensão e "
+     "aterramento temporário — e energizadas, inclusive no Sistema Elétrico de "
+     "Potência, exigindo trabalhadores autorizados e treinamento complementar "
+     "específico (BRASIL, 2019). O trabalho em postes e estruturas sujeita-se "
+     "ainda à NR-35. Do ponto de vista psicossocial, a literatura específica "
+     "do setor evidencia a combinação de altas demandas físicas e cognitivas "
+     "com fatores organizacionais adversos, associada a maior prevalência de "
+     "transtornos mentais comuns (SOUZA et al., 2010). A pressão temporal no "
+     "restabelecimento de fornecimento, o regime de turnos e sobreaviso, o "
+     "trabalho a céu aberto e a convivência permanente com risco de acidente "
+     "grave compõem um perfil em que a gestão psicossocial é também medida de "
+     "prevenção de acidentes, dado que falhas de atenção têm consequência "
+     "severa.")
+
+h2(doc, "2.9 Transformação digital na gestão de SST")
+body(doc, "A digitalização de processos de SST tem como benefícios documentados "
+     "a padronização dos registros, a redução do tempo entre coleta e análise, "
+     "a eliminação de transcrições manuais e a rastreabilidade exigida por "
+     "auditorias e fiscalização. No contexto deste trabalho, a opção por "
+     "tecnologias gratuitas e de baixa barreira técnica é uma decisão "
+     "deliberada de projeto, voltada à replicabilidade da solução por "
+     "profissionais de SST sem apoio de equipe de tecnologia da informação. "
+     "Essa escolha dialoga com a hierarquia de medidas da NR-1: ao reduzir o "
+     "custo de identificar e documentar, a ferramenta libera esforço para a "
+     "etapa que efetivamente protege — a implementação de medidas de controle.")
+
+h2(doc, "2.10 Estudos correlatos recentes")
+body(doc, "A produção recente sobre o tema no Brasil intensificou-se a partir da "
+     "publicação da Portaria MTE nº 1.419/2024, concentrando-se em três "
+     "vertentes: a análise jurídico-normativa das obrigações decorrentes da "
+     "nova NR-1 e sua incorporação ao PGR; a discussão dos limites e das "
+     "condições para uma avaliação psicossocial fiel à organização do trabalho; "
+     "e os estudos epidemiológicos sobre desfechos de saúde mental, entre os "
+     "quais os de burnout (TREML et al., 2025; ANAMT, 2026). Observa-se, "
+     "entretanto, escassez de trabalhos que proponham instrumentos e ferramentas "
+     "operacionais de baixo custo voltados à realidade de organizações com "
+     "equipes de SST reduzidas — lacuna que este trabalho pretende ajudar a "
+     "preencher. No recorte setorial, a literatura específica sobre eletricidade "
+     "permanece ancorada em estudos como o de Souza et al. (2010), o que "
+     "evidencia a oportunidade de novas aplicações no setor sob a ótica da NR-1 "
+     "atualizada.")
+
+h2(doc, "2.11 Síntese da revisão")
+body(doc, "A literatura recente e o marco normativo convergem em três pontos que "
+     "orientam o desenvolvimento: (i) a avaliação psicossocial deve ser "
+     "organizacional, anônima e integrada ao sistema de gestão; (ii) as "
+     "dimensões a avaliar têm lastro teórico consolidado nos modelos "
+     "demanda-controle-apoio (KARASEK, 1979; JOHNSON; HALL, 1988) e "
+     "esforço-recompensa (SIEGRIST, 1996); e (iii) a inércia à conformidade é "
+     "sobretudo operacional, o que abre espaço para uma solução digital de "
+     "baixo custo. Esses três pontos são retomados na metodologia e na "
+     "discussão.")
 doc.add_page_break()
 
-# ===== 3 METODOLOGIA ==========================================================
-doc.add_heading("3 METODOLOGIA", level=1)
+# ===================================================== 3 METODOLOGIA ==========
+h1(doc, "3 METODOLOGIA")
 
-doc.add_heading("3.1 Caracterização da pesquisa", level=2)
-add_body(doc, "Trata-se de pesquisa aplicada, de natureza tecnológica, conduzida "
-         "na forma de desenvolvimento de artefato (plataforma digital) seguido "
-         "de estudo de caso com aplicação piloto. A abordagem é "
-         "quali-quantitativa: quantitativa no tratamento das respostas do "
-         "instrumento e qualitativa na análise da adequação do processo ao "
-         "contexto organizacional. O estudo de caso foi conduzido em "
-         "[PREENCHER: caracterização da empresa — porte, região de atuação, "
-         "efetivo aproximado e atividades, sem identificar dados sensíveis].")
+h2(doc, "3.1 Caracterização da pesquisa")
+body(doc, "Trata-se de pesquisa aplicada, de natureza tecnológica, conduzida na "
+     "forma de desenvolvimento de artefato (a plataforma digital) seguido de "
+     "estudo de caso com aplicação piloto. A abordagem é quali-quantitativa: "
+     "quantitativa no tratamento das respostas do instrumento e qualitativa na "
+     "análise da adequação do processo ao contexto organizacional. Quanto aos "
+     "objetivos, é descritiva e propositiva. O estudo de caso foi conduzido em "
+     "uma organização do setor de distribuição de energia elétrica, aqui "
+     "caracterizada de forma a não permitir sua identificação: [PREENCHER: "
+     "porte, região de atuação e natureza das atividades, SEM nome nem dados "
+     "identificáveis].")
 
-doc.add_heading("3.2 Arquitetura da plataforma", level=2)
-add_body(doc, "A plataforma, denominada Psike, foi construída sobre três decisões "
-         "de arquitetura: custo zero de operação, ausência de instalação e "
-         "anonimato por construção. O frontend é um único arquivo HTML "
-         "autocontido, sem framework nem etapa de compilação, que funciona em "
-         "qualquer navegador de computador ou celular. O backend é um script "
-         "gratuito do Google Apps Script publicado como aplicativo web, que "
-         "grava os registros em abas de uma planilha Google — uma aba por "
-         "módulo — servindo como repositório único de dados. O frontend detecta "
-         "automaticamente o ambiente: quando a URL do backend está configurada, "
-         "os dados são gravados na nuvem e compartilhados entre todos os "
-         "dispositivos; sem backend, a aplicação opera em modo local para "
-         "demonstração. Não há coleta de nome, e-mail ou identificador "
-         "individual em nenhum módulo de avaliação psicossocial.")
-add_body(doc, "A plataforma foi organizada em quatro módulos sobre o mesmo "
-         "repositório de dados, espelhando o Inventário de Riscos Ocupacionais: "
-         "Módulo 1 — avaliação de riscos psicossociais (NR-1/ISO 45003); "
-         "Módulo 2 — permissão de trabalho digital para serviços em redes de "
-         "distribuição (NR-10 e NR-35); Módulo 3 — Avaliação Ergonômica "
-         "Preliminar (NR-17); Módulo 4 — registro e investigação de acidentes "
-         "e quase acidentes.")
+h2(doc, "3.2 Passo a passo da monografia")
+body(doc, "O desenvolvimento seguiu as etapas descritas a seguir, encadeadas de "
+     "modo que cada uma fornecesse subsídios à seguinte.")
+bullet(doc, "Etapa 1 — Revisão bibliográfica e normativa: levantamento das "
+       "definições, modelos e evidências recentes (seção 2) e sistematização "
+       "dos requisitos da NR-1 e normas correlatas.", numbered=True)
+bullet(doc, "Etapa 2 — Especificação do instrumento: definição das seis "
+       "dimensões, redação dos dez itens em sentido positivo, escolha da escala "
+       "Likert de cinco pontos e dos critérios de classificação de risco.",
+       numbered=True)
+bullet(doc, "Etapa 3 — Projeto da arquitetura: definição das premissas de custo "
+       "zero, ausência de instalação e anonimato por construção, e escolha das "
+       "tecnologias (frontend web autocontido e backend gratuito em nuvem).",
+       numbered=True)
+bullet(doc, "Etapa 4 — Desenvolvimento da plataforma: implementação do Módulo 1 "
+       "(psicossocial) e dos módulos complementares (permissão de trabalho, "
+       "ergonomia e acidentes), com painel e geração automática de texto para "
+       "o IRO.", numbered=True)
+bullet(doc, "Etapa 5 — Testes e validação técnica: verificação de "
+       "funcionamento, integridade dos dados e usabilidade em dispositivos "
+       "móveis.", numbered=True)
+bullet(doc, "Etapa 6 — Aplicação piloto: distribuição do instrumento de forma "
+       "anônima aos trabalhadores da organização estudada, com comunicação "
+       "prévia sobre o caráter voluntário e o anonimato.", numbered=True)
+bullet(doc, "Etapa 7 — Análise e discussão: consolidação dos resultados "
+       "agregados, geração do texto do IRO e discussão à luz da literatura.",
+       numbered=True)
+bullet(doc, "Etapa 8 — Proposição de medidas: recomendação de plano de ação "
+       "(5W2H) para as dimensões classificadas como de risco médio ou alto.",
+       numbered=True)
 
-doc.add_heading("3.3 O instrumento de avaliação psicossocial", level=2)
-add_body(doc, "O instrumento contém dez afirmativas redigidas em sentido positivo, "
-         "distribuídas em seis dimensões: carga e ritmo de trabalho (2 itens), "
-         "autonomia e controle (2), clareza de papel (2), apoio social e de "
-         "liderança (2), reconhecimento (1) e assédio e violência no trabalho "
-         "(1). O respondente indica concordância em escala Likert de cinco "
-         "pontos (1 = discordo totalmente; 5 = concordo totalmente). O único "
-         "dado adicional coletado é o setor, opcional, para análise "
-         "estratificada. A aplicação é anônima e o respondente é informado "
-         "disso antes de iniciar.")
-add_body(doc, "Como as afirmativas são positivas, notas altas indicam condição "
-         "favorável. A nota média de cada dimensão é classificada em três "
-         "faixas de risco: risco baixo (média maior ou igual a 3,8), risco "
-         "médio (média entre 2,8 e 3,8) e risco alto (média inferior a 2,8). "
-         "Os pontos de corte foram definidos por julgamento técnico, "
-         "privilegiando a sensibilidade — na dúvida, a dimensão é classificada "
-         "na faixa mais conservadora — e devem ser reavaliados após a "
-         "acumulação de séries históricas.")
+h2(doc, "3.3 Aspectos éticos e anonimato")
+body(doc, "A coleta foi concebida para não identificar indivíduos nem a "
+     "organização. Não se coletam nome, matrícula, e-mail ou qualquer "
+     "identificador pessoal; o único dado adicional é o setor, opcional, para "
+     "permitir a estratificação mínima da análise. Esse desenho está alinhado à "
+     "Lei nº 13.709/2018 (LGPD), que condiciona o tratamento de dados pessoais, "
+     "e à orientação do guia do MTE de que a avaliação seja coletiva e anônima "
+     "(BRASIL, 2025). Em conformidade com a orientação recebida, este documento "
+     "não expõe o nome da organização, não apresenta fotografias de "
+     "trabalhadores e não inclui dados que permitam identificação; as "
+     "ilustrações limitam-se a gráficos agregados e a telas do sistema sem "
+     "dados pessoais.")
 
-doc.add_heading("3.4 Geração automática do texto para o IRO", level=2)
-add_body(doc, "A cada acesso ao painel, a plataforma consolida as respostas, "
-         "calcula as médias por dimensão, aplica a classificação e redige "
-         "automaticamente a seção de fatores de risco psicossocial do IRO, "
-         "contendo: base normativa, data de geração, método e número de "
-         "respondentes, resultado por dimensão com nota média e faixa de "
-         "risco, recomendação de plano de ação (5W2H) para as dimensões em "
-         "risco médio ou alto e recomendação de reavaliação periódica com "
-         "manutenção do histórico. O texto é editável antes da inserção no "
-         "documento oficial do PGR, preservando a responsabilidade técnica do "
-         "profissional que o subscreve.")
+h2(doc, "3.4 Arquitetura da plataforma")
+body(doc, "A plataforma, denominada Psike, foi construída sobre três decisões de "
+     "arquitetura: custo zero de operação, ausência de instalação e anonimato "
+     "por construção. O frontend é um único arquivo executado no navegador, sem "
+     "necessidade de instalação, o que permite o uso em qualquer computador ou "
+     "celular. O backend é um serviço gratuito em nuvem que grava os registros "
+     "em uma planilha eletrônica — uma aba por módulo —, servindo como "
+     "repositório único de dados. O frontend detecta automaticamente o "
+     "ambiente: quando o backend está configurado, os dados são gravados na "
+     "nuvem e compartilhados entre dispositivos; na ausência de backend, a "
+     "aplicação opera em modo local para demonstração.")
+body(doc, "A plataforma foi organizada em quatro módulos sobre o mesmo "
+     "repositório de dados, espelhando o Inventário de Riscos Ocupacionais: "
+     "Módulo 1 — avaliação de riscos psicossociais (NR-1 e ISO 45003); Módulo 2 "
+     "— permissão de trabalho digital para serviços em redes de distribuição "
+     "(NR-10 e NR-35); Módulo 3 — Avaliação Ergonômica Preliminar (NR-17); e "
+     "Módulo 4 — registro e investigação de acidentes e quase acidentes.")
 
-doc.add_heading("3.5 Módulos complementares", level=2)
-add_body(doc, "Módulo 2 — Permissão de trabalho digital (NR-10/NR-35): o executante "
-         "seleciona o tipo de serviço — rede desenergizada (linha morta), rede "
-         "energizada/SEP (linha viva) ou trabalho em altura em postes e "
-         "estruturas — e a plataforma apresenta o checklist correspondente. "
-         "Para rede desenergizada, o checklist segue a sequência de "
-         "desenergização da NR-10 (seccionamento; impedimento de "
-         "reenergização; constatação da ausência de tensão; aterramento "
-         "temporário com equipotencialização; proteção dos elementos "
-         "energizados da zona controlada; sinalização), acrescida da "
-         "verificação de trabalhadores autorizados, EPI/EPC isolantes e ordem "
-         "de serviço. Para linha viva/SEP, verifica treinamento complementar "
-         "SEP, supervisão, luvas isolantes de classe adequada, ferramental "
-         "isolado, distâncias de segurança, condições climáticas e comunicação "
-         "com o centro de operação. A liberação exige checklist completo, "
-         "captura de geolocalização pelo GPS do dispositivo e assinatura "
-         "digital em tela — o botão de liberação permanece bloqueado até que "
-         "todas as condições sejam atendidas.")
-add_body(doc, "Módulo 3 — Avaliação Ergonômica Preliminar (NR-17): formulário "
-         "estruturado em cinco blocos de fatores (manuseio de cargas; "
-         "mobiliário e postos de trabalho; posturas e exigência física; "
-         "organização do trabalho; condições ambientais do posto e trabalho "
-         "com telas), avaliados em escala de três pontos. A plataforma "
-         "classifica cada bloco e gera parecer automático, indicando a "
-         "necessidade de aprofundamento em Análise Ergonômica do Trabalho "
-         "(AET) quando algum bloco resulta inadequado, conforme a NR-17.")
-add_body(doc, "Módulo 4 — Registro e investigação de acidentes e quase acidentes: "
-         "registro rápido em campo de ocorrências, com classificação "
-         "(acidente ou quase acidente), descrição, fatores causais em níveis "
-         "(causas imediatas, subjacentes e básicas) e ações decorrentes, "
-         "alimentando indicadores no mesmo repositório de dados. "
-         "[PREENCHER: ajustar esta descrição ao estado final do módulo na "
-         "data da entrega].")
+h2(doc, "3.5 O instrumento de avaliação psicossocial")
+body(doc, "O instrumento contém dez afirmativas redigidas em sentido positivo, "
+     "distribuídas em seis dimensões: carga e ritmo de trabalho (dois itens), "
+     "autonomia e controle (dois), clareza de papel (dois), apoio social e de "
+     "liderança (dois), reconhecimento (um) e assédio e violência no trabalho "
+     "(um). A escolha das dimensões deriva diretamente dos modelos revisados na "
+     "seção 2: carga, autonomia e apoio decorrem do modelo "
+     "demanda-controle-apoio; reconhecimento decorre do modelo "
+     "esforço-recompensa; clareza de papel e assédio integram instrumentos "
+     "multidimensionais como o COPSOQ. O respondente indica concordância em "
+     "escala Likert de cinco pontos (1 = discordo totalmente; 5 = concordo "
+     "totalmente). O texto integral do instrumento consta do Apêndice A.")
 
-doc.add_heading("3.6 Aplicação piloto", level=2)
-add_body(doc, "A aplicação piloto foi conduzida em [PREENCHER: empresa/unidade], "
-         "no período de [PREENCHER: período], abrangendo [PREENCHER: número] "
-         "trabalhadores dos setores de [PREENCHER: setores]. O link da "
-         "plataforma foi distribuído por [PREENCHER: canal — ex.: grupos de "
-         "trabalho, QR code em DDS], precedido de comunicação sobre o caráter "
-         "anônimo e voluntário da participação. [PREENCHER: registrar aqui "
-         "eventuais aprovações internas — RH, diretoria — e como foi feita a "
-         "sensibilização].")
+h2(doc, "3.6 Classificação de risco e geração do IRO")
+body(doc, "Como as afirmativas são positivas, notas altas indicam condição "
+     "favorável. A nota média de cada dimensão é classificada em três faixas: "
+     "risco baixo (média maior ou igual a 3,8), risco médio (média entre 2,8 e "
+     "3,8) e risco alto (média inferior a 2,8). Os pontos de corte foram "
+     "definidos por julgamento técnico, privilegiando a sensibilidade — na "
+     "dúvida, a dimensão é classificada na faixa mais conservadora — e devem "
+     "ser recalibrados com a acumulação de séries históricas. A cada consulta "
+     "ao painel, a plataforma consolida as respostas, calcula as médias, aplica "
+     "a classificação e redige automaticamente a seção de fatores psicossociais "
+     "do IRO, contendo base normativa, método, número de respondentes, "
+     "resultado por dimensão, recomendação de plano de ação para as dimensões "
+     "críticas e recomendação de reavaliação periódica. O texto é editável "
+     "antes da inserção no PGR, preservando a responsabilidade técnica do "
+     "profissional que o subscreve.")
+
+h2(doc, "3.7 Módulos complementares")
+body(doc, "Módulo 2 — Permissão de trabalho digital (NR-10/NR-35): o executante "
+     "seleciona o tipo de serviço — rede desenergizada (linha morta), rede "
+     "energizada ou Sistema Elétrico de Potência (linha viva) e trabalho em "
+     "altura em postes e estruturas — e a plataforma apresenta o checklist "
+     "correspondente. Para rede desenergizada, o checklist segue a sequência de "
+     "desenergização da NR-10. A liberação exige checklist completo, captura de "
+     "geolocalização e assinatura digital em tela, com o botão de liberação "
+     "bloqueado até que todas as condições sejam atendidas.")
+body(doc, "Módulo 3 — Avaliação Ergonômica Preliminar (NR-17): formulário "
+     "estruturado em cinco blocos de fatores, avaliados em escala de três "
+     "pontos; a plataforma classifica cada bloco e gera parecer automático, "
+     "indicando a necessidade de aprofundamento em Análise Ergonômica do "
+     "Trabalho quando algum bloco resulta inadequado.")
+body(doc, "Módulo 4 — Registro e investigação de acidentes e quase acidentes "
+     "(NR-1): registro rápido em campo, com classificação da ocorrência, "
+     "descrição, análise de causas em três níveis (imediatas, subjacentes e "
+     "básicas) e ações decorrentes, além de indicadores. O módulo reforça que a "
+     "emissão da Comunicação de Acidente de Trabalho é obrigação legal do "
+     "empregador e não é substituída pelo registro na plataforma.")
+
+h2(doc, "3.8 Aplicação piloto")
+body(doc, "A aplicação piloto foi conduzida na organização estudada no período "
+     "de [PREENCHER: período], abrangendo [PREENCHER: número] trabalhadores dos "
+     "setores de [PREENCHER: setores]. O link da plataforma foi distribuído por "
+     "[PREENCHER: canal], precedido de comunicação sobre o caráter anônimo e "
+     "voluntário da participação. [PREENCHER: registrar eventuais aprovações "
+     "internas e a forma de sensibilização, sem identificar a organização].")
+
+h2(doc, "3.9 Tratamento e análise dos dados")
+body(doc, "As respostas foram tratadas de forma agregada. Para cada dimensão, "
+     "calcula-se a média aritmética das respostas dos itens que a compõem, "
+     "considerando todos os respondentes; a média é então enquadrada em uma das "
+     "três faixas de risco definidas na seção 3.6. O painel apresenta, além das "
+     "médias e faixas por dimensão, indicadores consolidados — número de "
+     "respondentes e contagem de dimensões em cada faixa — que subsidiam a "
+     "priorização das ações. Quando a amostra por setor é suficiente, é possível "
+     "estratificar os resultados para localizar os focos de risco; quando não "
+     "é, os resultados são apresentados apenas de forma global, para não "
+     "comprometer o anonimato. Nenhuma análise busca ou permite a identificação "
+     "de respondentes individuais.")
 doc.add_page_break()
 
-# ===== 4 RESULTADOS ===========================================================
-doc.add_heading("4 RESULTADOS E DISCUSSÃO", level=1)
+# ============================================ 4 RESULTADOS E DISCUSSÃO =========
+h1(doc, "4 RESULTADOS E DISCUSSÃO")
+body(doc, "Esta seção integra a apresentação dos resultados e sua discussão à "
+     "luz da literatura e do marco normativo revisados na seção 2, conforme "
+     "orientação metodológica adotada.")
 
-doc.add_heading("4.1 A plataforma implementada", level=2)
-add_body(doc, "A plataforma foi implementada integralmente e está operacional, "
-         "com os módulos 1 a 3 em uso e o módulo 4 em [PREENCHER: estado na "
-         "data da entrega]. O fluxo do Módulo 1 — da resposta anônima no "
-         "celular ao texto pronto para o IRO — ocorre sem qualquer etapa "
-         "manual de tabulação. [PREENCHER: inserir aqui capturas de tela da "
-         "aplicação: formulário, painel por dimensão e texto do IRO gerado; "
-         "e, se possível, foto do uso em campo do Módulo 2].")
-add_body(doc, "O custo de operação é nulo: a hospedagem do arquivo HTML é "
-         "gratuita, e o backend utiliza a camada gratuita do Google Apps "
-         "Script e do Google Sheets. Como contrapartida, há limites de volume "
-         "de requisições e de linhas de planilha, discutidos na seção 4.4.")
+h2(doc, "4.1 A plataforma desenvolvida")
+body(doc, "A plataforma foi implementada integralmente e encontra-se "
+     "operacional, com os quatro módulos em uso. O fluxo do Módulo 1 — da "
+     "resposta anônima no celular ao texto pronto para o IRO — ocorre sem "
+     "qualquer etapa manual de tabulação. O custo de operação é nulo, uma vez "
+     "que tanto a hospedagem do frontend quanto o backend utilizam camadas "
+     "gratuitas. A Figura 1 apresenta as telas principais do sistema. "
+     "[PREENCHER: inserir Figura 1 com telas do sistema, SEM dados pessoais.]")
 
-doc.add_heading("4.2 Resultados da aplicação piloto", level=2)
-add_body(doc, "[PREENCHER: apresentar os resultados reais — número de "
-         "respondentes, taxa de adesão, nota média e classificação por "
-         "dimensão, comparação entre setores se houver amostra suficiente. "
-         "Inserir a tabela de resultados por dimensão e o gráfico do painel. "
-         "NÃO inventar dados.]")
-add_body(doc, "[PREENCHER: transcrever aqui o texto do IRO gerado pela "
-         "plataforma para a aplicação real, como evidência do produto final "
-         "do processo.]")
+h2(doc, "4.2 Resultados da aplicação piloto")
+body(doc, "[PREENCHER: apresentar os resultados reais — número de respondentes, "
+     "taxa de adesão, nota média e classificação por dimensão, e comparação "
+     "entre setores se houver amostra suficiente. Inserir a tabela de "
+     "resultados por dimensão e o gráfico agregado do painel. NÃO inventar "
+     "dados e NÃO identificar a organização.]")
+body(doc, "[PREENCHER: transcrever o texto do IRO gerado pela plataforma para a "
+     "aplicação real, como evidência do produto final do processo.]")
 
-doc.add_heading("4.3 Integração com o PGR e plano de ação", level=2)
-add_body(doc, "O texto gerado pela plataforma foi estruturado para inserção "
-         "direta na seção de fatores psicossociais do IRO. Para as dimensões "
-         "classificadas em risco médio ou alto, recomenda-se a elaboração de "
-         "plano de ação no formato 5W2H, com medidas de natureza "
-         "organizacional priorizadas sobre medidas individuais, em consonância "
-         "com a hierarquia de controles da NR-1 e com as diretrizes da OMS. "
-         "[PREENCHER: descrever o plano de ação efetivamente elaborado com a "
-         "empresa a partir dos resultados do piloto].")
+h2(doc, "4.3 Discussão à luz da literatura")
+body(doc, "Os achados [PREENCHER: ajustar conforme os dados reais] são "
+     "coerentes com o padrão descrito pela literatura do setor elétrico, em que "
+     "as dimensões de demanda, controle e apoio social concentram o maior "
+     "potencial de risco (SOUZA et al., 2010). Caso as dimensões de carga e "
+     "apoio despontem como críticas, o resultado dialoga diretamente com o "
+     "modelo demanda-controle-apoio (KARASEK, 1979) e reforça a pertinência de "
+     "medidas organizacionais, como redimensionamento de equipes e revisão de "
+     "escalas, em detrimento de intervenções centradas apenas no indivíduo, "
+     "conforme recomenda a OMS (2022). A eventual criticidade da dimensão "
+     "reconhecimento remete ao modelo esforço-recompensa (SIEGRIST, 1996) e ao "
+     "risco de burnout, cujo componente de redução da realização pessoal se "
+     "associa à percepção de baixa recompensa (MASLACH; SCHAUFELI; LEITER, "
+     "2001).")
+body(doc, "A discussão evidencia, ainda, o principal argumento do trabalho: a "
+     "barreira à conformidade com a nova NR-1 é sobretudo operacional, e não "
+     "conceitual. O ciclo identificar–avaliar–documentar–agir é bem descrito na "
+     "norma e nas referências, porém custoso quando executado manualmente. A "
+     "digitalização de ponta a ponta reduziu esse custo a praticamente zero na "
+     "organização estudada, ao mesmo tempo em que melhorou os atributos "
+     "exigidos pela norma: anonimato, consistência da classificação e "
+     "rastreabilidade dos registros.")
 
-doc.add_heading("4.4 Limitações", level=2)
-add_bullet(doc, "Instrumento de triagem: com dez itens, o instrumento prioriza "
-           "viabilidade e adesão; não substitui instrumentos psicométricos "
-           "validados quando se exigir diagnóstico aprofundado, e não passou "
-           "por validação estatística formal (a validação com amostras "
-           "maiores é sugerida como trabalho futuro);")
-add_bullet(doc, "Pontos de corte definidos por julgamento técnico, a calibrar "
-           "com séries históricas;")
-add_bullet(doc, "Ausência de autenticação: qualquer pessoa com o link acessa o "
-           "formulário e o painel — aceitável no piloto, mas a segmentação "
-           "por empresa/cliente e o controle de acesso são requisitos para "
-           "uso comercial;")
-add_bullet(doc, "Limites da camada gratuita do Google Sheets/Apps Script quanto "
-           "a volume de dados e requisições — a migração para banco de dados "
-           "dedicado é o caminho natural em caso de escala;")
-add_bullet(doc, "Amostra do piloto restrita a uma organização, o que limita a "
-           "generalização direta dos resultados.")
+h2(doc, "4.4 Integração ao PGR e plano de ação")
+body(doc, "O texto gerado pela plataforma foi estruturado para inserção direta "
+     "na seção de fatores psicossociais do IRO. Para as dimensões classificadas "
+     "como de risco médio ou alto, recomenda-se plano de ação no formato 5W2H, "
+     "com medidas de natureza organizacional priorizadas, em consonância com a "
+     "hierarquia de controles da NR-1 e com as diretrizes da OMS. [PREENCHER: "
+     "descrever o plano de ação efetivamente elaborado a partir dos resultados "
+     "do piloto, sem identificar a organização.]")
 
-doc.add_heading("4.5 Discussão", level=2)
-add_body(doc, "Os resultados [PREENCHER: ajustar conforme os dados reais] "
-         "sugerem que a principal barreira à conformidade com a nova NR-1 não "
-         "é conceitual, mas operacional: o ciclo identificar–avaliar–"
-         "documentar–agir é bem descrito na norma e nas referências, porém "
-         "custoso quando executado manualmente. A digitalização de ponta a "
-         "ponta reduziu esse custo a praticamente zero na organização "
-         "estudada, ao mesmo tempo em que melhorou atributos exigidos pela "
-         "norma: anonimato (coleta sem identificadores), consistência "
-         "(classificação algorítmica uniforme) e rastreabilidade (registros "
-         "com data e hora em repositório único). A extensão da mesma base de "
-         "dados aos módulos de permissão de trabalho, ergonomia e acidentes "
-         "aponta para o conceito de inventário de riscos vivo, atualizado "
-         "pelos próprios processos operacionais de SST, em vez de documento "
-         "estático revisado anualmente.")
+h2(doc, "4.5 Limitações")
+bullet(doc, "Instrumento de triagem: com dez itens, prioriza viabilidade e "
+       "adesão; não substitui instrumentos psicométricos validados quando se "
+       "exigir diagnóstico aprofundado, e não passou por validação estatística "
+       "formal;")
+bullet(doc, "Pontos de corte definidos por julgamento técnico, a calibrar com "
+       "séries históricas;")
+bullet(doc, "Ausência de autenticação e de segregação de dados por "
+       "organização, aceitável no piloto, mas requisito para uso comercial;")
+bullet(doc, "Limites das camadas gratuitas de nuvem quanto a volume de dados e "
+       "requisições;")
+bullet(doc, "Amostra do piloto restrita a uma organização, o que limita a "
+       "generalização direta dos resultados.")
 doc.add_page_break()
 
-# ===== 5 CONSIDERAÇÕES FINAIS =================================================
-doc.add_heading("5 CONSIDERAÇÕES FINAIS", level=1)
-add_body(doc, "Este trabalho desenvolveu e aplicou uma plataforma digital de "
-         "custo zero para a gestão de fatores de risco psicossocial conforme "
-         "a NR-1, integrada a módulos complementares de permissão de trabalho "
-         "(NR-10/NR-35), avaliação ergonômica preliminar (NR-17) e registro "
-         "de acidentes, em uma organização do setor de distribuição de "
-         "energia elétrica. Os objetivos propostos foram atingidos: o "
-         "instrumento foi construído e aplicado de forma anônima, a "
-         "classificação de risco por dimensão foi automatizada e o texto da "
-         "seção correspondente do IRO passou a ser gerado automaticamente. "
-         "[PREENCHER: uma frase com o principal resultado quantitativo do "
-         "piloto].")
-add_body(doc, "Como trabalhos futuros, sugerem-se: a validação psicométrica do "
-         "instrumento com amostras maiores; a calibração dos pontos de corte "
-         "com séries históricas; a implementação de autenticação e segregação "
-         "de dados por empresa; a migração do repositório para banco de dados "
-         "dedicado; e o acompanhamento longitudinal da eficácia das medidas "
-         "de controle implantadas a partir dos resultados, fechando o ciclo "
-         "de melhoria contínua previsto no GRO.")
+# ============================================ 5 CONCLUSÃO =====================
+h1(doc, "5 CONCLUSÃO")
+body(doc, "O objetivo geral — desenvolver e aplicar uma plataforma digital para "
+     "a gestão de fatores de risco psicossocial conforme a NR-1, integrada à "
+     "gestão de riscos de uma organização do setor de distribuição de energia — "
+     "foi [PREENCHER: atingido / parcialmente atingido]. A plataforma foi "
+     "desenvolvida e está operacional, com coleta anônima, classificação "
+     "automática por dimensão e geração automática do texto para o IRO, e foi "
+     "aplicada em caráter piloto. [PREENCHER: uma frase objetiva sobre o "
+     "principal resultado do piloto e se ele confirmou ou não a hipótese de "
+     "viabilidade.]")
+body(doc, "Como trabalhos futuros, sugerem-se a validação psicométrica do "
+     "instrumento, a calibração dos pontos de corte com séries históricas, a "
+     "implementação de autenticação e segregação por organização, a migração "
+     "para banco de dados dedicado e o acompanhamento longitudinal da eficácia "
+     "das medidas de controle implantadas.")
 doc.add_page_break()
 
-# ===== REFERÊNCIAS ============================================================
-doc.add_heading("REFERÊNCIAS", level=1)
-add_ref(doc, "BRASIL. Lei nº 13.709, de 14 de agosto de 2018. Lei Geral de "
-        "Proteção de Dados Pessoais (LGPD). Diário Oficial da União, Brasília, "
-        "DF, 15 ago. 2018.")
-add_ref(doc, "BRASIL. Ministério do Trabalho e Emprego. Norma Regulamentadora "
-        "nº 1 (NR-1): disposições gerais e gerenciamento de riscos "
-        "ocupacionais. Redação dada pela Portaria MTE nº 1.419, de 27 de "
-        "agosto de 2024. Brasília, DF: MTE, 2024.")
-add_ref(doc, "BRASIL. Ministério do Trabalho e Emprego. Norma Regulamentadora "
-        "nº 10 (NR-10): segurança em instalações e serviços em eletricidade. "
-        "Brasília, DF: MTE, 2019.")
-add_ref(doc, "BRASIL. Ministério do Trabalho e Emprego. Norma Regulamentadora "
-        "nº 17 (NR-17): ergonomia. Redação dada pela Portaria MTP nº 423, de "
-        "7 de outubro de 2021. Brasília, DF: MTE, 2021.")
-add_ref(doc, "BRASIL. Ministério do Trabalho e Emprego. Norma Regulamentadora "
-        "nº 35 (NR-35): trabalho em altura. Brasília, DF: MTE, "
-        "[PREENCHER: ano da redação vigente consultada].")
-add_ref(doc, "BRASIL. Ministério do Trabalho e Emprego. Guia de informações "
-        "sobre os fatores de riscos psicossociais relacionados ao trabalho. "
-        "Brasília, DF: MTE, 2025. [PREENCHER: conferir título e ano exatos da "
-        "edição consultada].")
-add_ref(doc, "INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. ISO 45003:2021 — "
-        "Occupational health and safety management — Psychological health and "
-        "safety at work: guidelines for managing psychosocial risks. Geneva: "
-        "ISO, 2021.")
-add_ref(doc, "ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. ABNT NBR ISO 45001:2018 "
-        "— Sistemas de gestão de saúde e segurança ocupacional: requisitos com "
-        "orientações para uso. Rio de Janeiro: ABNT, 2018.")
-add_ref(doc, "KARASEK, R. A. Job demands, job decision latitude, and mental "
-        "strain: implications for job redesign. Administrative Science "
-        "Quarterly, v. 24, n. 2, p. 285-308, 1979.")
-add_ref(doc, "KRISTENSEN, T. S.; HANNERZ, H.; HØGH, A.; BORG, V. The Copenhagen "
-        "Psychosocial Questionnaire: a tool for the assessment and improvement "
-        "of the psychosocial work environment. Scandinavian Journal of Work, "
-        "Environment & Health, v. 31, n. 6, p. 438-449, 2005.")
-add_ref(doc, "LEKA, S.; JAIN, A. Health impact of psychosocial hazards at work: "
-        "an overview. Geneva: World Health Organization, 2010.")
-add_ref(doc, "SIEGRIST, J. Adverse health effects of high-effort/low-reward "
-        "conditions. Journal of Occupational Health Psychology, v. 1, n. 1, "
-        "p. 27-41, 1996.")
-add_ref(doc, "WORLD HEALTH ORGANIZATION. WHO guidelines on mental health at "
-        "work. Geneva: WHO, 2022.")
+# ============================================ REFERÊNCIAS =====================
+h1(doc, "REFERÊNCIAS")
+REFS = [
+    "ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. ABNT NBR ISO 45001:2018 — "
+    "Sistemas de gestão de saúde e segurança ocupacional: requisitos com "
+    "orientações para uso. Rio de Janeiro: ABNT, 2018.",
+    "ASSOCIAÇÃO NACIONAL DE MEDICINA DO TRABALHO (ANAMT). Levantamento com "
+    "dados oficiais do INSS revela crescimento dos afastamentos decorrentes de "
+    "problemas de saúde mental entre 2023 e 2025. 2026. Disponível em: "
+    "[PREENCHER: URL e data de acesso].",
+    "AGÊNCIA EUROPEIA PARA A SEGURANÇA E SAÚDE NO TRABALHO (EU-OSHA). "
+    "Psychosocial risks and stress at work. Bilbao: EU-OSHA, [PREENCHER: ano "
+    "da publicação consultada].",
+    "BRASIL. Lei nº 13.709, de 14 de agosto de 2018. Lei Geral de Proteção de "
+    "Dados Pessoais (LGPD). Diário Oficial da União, Brasília, DF, 15 ago. 2018.",
+    "HEALTH AND SAFETY EXECUTIVE (HSE). Management Standards for work-related "
+    "stress. Sudbury: HSE, [PREENCHER: ano da versão consultada].",
+    "JOHNSON, J. V.; HALL, E. M. Job strain, work place social support, and "
+    "cardiovascular disease: a cross-sectional study of a random sample of the "
+    "Swedish working population. American Journal of Public Health, v. 78, "
+    "n. 10, p. 1336-1342, 1988.",
+    "BRASIL. Ministério do Trabalho e Emprego. Norma Regulamentadora nº 1 "
+    "(NR-1): disposições gerais e gerenciamento de riscos ocupacionais. Redação "
+    "dada pela Portaria MTE nº 1.419, de 27 de agosto de 2024. Brasília, DF: "
+    "MTE, 2024.",
+    "BRASIL. Ministério do Trabalho e Emprego. Portaria MTE nº 765, de 2025 — "
+    "define a exigibilidade da gestão de riscos psicossociais na NR-1 a partir "
+    "de 26 de maio de 2026. Brasília, DF: MTE, 2025. [PREENCHER: conferir "
+    "número/data exatos].",
+    "BRASIL. Ministério do Trabalho e Emprego. Norma Regulamentadora nº 10 "
+    "(NR-10): segurança em instalações e serviços em eletricidade. Brasília, "
+    "DF: MTE, 2019.",
+    "BRASIL. Ministério do Trabalho e Emprego. Norma Regulamentadora nº 17 "
+    "(NR-17): ergonomia. Redação dada pela Portaria MTP nº 423, de 7 de outubro "
+    "de 2021. Brasília, DF: MTE, 2021.",
+    "BRASIL. Ministério do Trabalho e Emprego. Norma Regulamentadora nº 35 "
+    "(NR-35): trabalho em altura. Brasília, DF: MTE, [PREENCHER: ano da redação "
+    "consultada].",
+    "BRASIL. Ministério do Trabalho e Emprego. Guia de informações sobre os "
+    "fatores de riscos psicossociais relacionados ao trabalho. Brasília, DF: "
+    "MTE, 2025. [PREENCHER: conferir título e ano exatos].",
+    "INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. ISO 45003:2021 — "
+    "Occupational health and safety management — Psychological health and "
+    "safety at work: guidelines for managing psychosocial risks. Geneva: ISO, "
+    "2021.",
+    "KARASEK, R. A. Job demands, job decision latitude, and mental strain: "
+    "implications for job redesign. Administrative Science Quarterly, v. 24, "
+    "n. 2, p. 285-308, 1979.",
+    "KRISTENSEN, T. S.; HANNERZ, H.; HØGH, A.; BORG, V. The Copenhagen "
+    "Psychosocial Questionnaire: a tool for the assessment and improvement of "
+    "the psychosocial work environment. Scandinavian Journal of Work, "
+    "Environment & Health, v. 31, n. 6, p. 438-449, 2005.",
+    "LEKA, S.; JAIN, A. Health impact of psychosocial hazards at work: an "
+    "overview. Geneva: World Health Organization, 2010.",
+    "MASLACH, C.; JACKSON, S. E. The measurement of experienced burnout. "
+    "Journal of Occupational Behavior, v. 2, n. 2, p. 99-113, 1981.",
+    "MASLACH, C.; SCHAUFELI, W. B.; LEITER, M. P. Job burnout. Annual Review "
+    "of Psychology, v. 52, p. 397-422, 2001.",
+    "ORGANIZAÇÃO MUNDIAL DA SAÚDE (OMS). Classificação Estatística "
+    "Internacional de Doenças e Problemas Relacionados à Saúde (CID-11): "
+    "burn-out (QD85). Genebra: OMS, 2019.",
+    "SIEGRIST, J. Adverse health effects of high-effort/low-reward conditions. "
+    "Journal of Occupational Health Psychology, v. 1, n. 1, p. 27-41, 1996.",
+    "SOUZA, S. F.; CARVALHO, F. M.; ARAÚJO, T. M.; PORTO, L. A. Fatores "
+    "psicossociais do trabalho e transtornos mentais comuns em eletricitários. "
+    "Revista de Saúde Pública, v. 44, n. 4, p. 710-717, 2010.",
+    "TREML, M. F. Q. et al. Burnout syndrome in Brazil (2014–2024): regional "
+    "variations and temporal trends in an epidemiological study. Revista "
+    "Brasileira de Medicina do Trabalho, 2025. [PREENCHER: conferir volume, "
+    "número, páginas e DOI].",
+    "UNIVERSIDADE DE SÃO PAULO. Agência de Bibliotecas e Coleções Digitais. "
+    "Diretrizes para apresentação de dissertações e teses da USP: parte I "
+    "(ABNT). 5. ed. São Paulo: ABCD/USP, 2024.",
+    "WORLD HEALTH ORGANIZATION (WHO). WHO guidelines on mental health at work. "
+    "Geneva: WHO, 2022.",
+]
+for r in REFS:
+    ref(doc, r)
 
-# ===== APÊNDICE ===============================================================
+# ============================================ APÊNDICE A =====================
 doc.add_page_break()
-doc.add_heading("APÊNDICE A — INSTRUMENTO DE AVALIAÇÃO APLICADO", level=1)
-add_body(doc, "Itens do questionário (escala: 1 = discordo totalmente a "
-         "5 = concordo totalmente; respostas anônimas; único dado adicional: "
-         "setor, opcional).", indent=False)
+h1(doc, "APÊNDICE A — INSTRUMENTO DE AVALIAÇÃO APLICADO")
+body(doc, "Itens do questionário (escala: 1 = discordo totalmente a 5 = concordo "
+     "totalmente; respostas anônimas; único dado adicional: setor, opcional).",
+     indent=False)
 ITENS = [
     ("Carga e ritmo de trabalho", "Tenho tempo suficiente para realizar minhas tarefas com qualidade."),
     ("Carga e ritmo de trabalho", "Raramente preciso trabalhar sob pressão intensa de prazos."),
@@ -760,7 +1016,18 @@ ITENS = [
     ("Assédio e violência no trabalho", "Nos últimos 12 meses, não presenciei nem sofri situações de assédio moral ou sexual no trabalho."),
 ]
 for i, (dim, txt) in enumerate(ITENS, 1):
-    add_bullet(doc, f"{i}. ({dim}) {txt}")
+    bullet(doc, f"{i}. ({dim}) {txt}")
+
+doc.add_page_break()
+h1(doc, "APÊNDICE B — ARQUITETURA E MÓDULOS DA PLATAFORMA")
+body(doc, "A plataforma Psike é composta por um frontend web autocontido e um "
+     "backend gratuito em nuvem, com quatro módulos sobre o mesmo repositório "
+     "de dados. A Figura B.1 sintetiza a arquitetura. [PREENCHER: inserir "
+     "diagrama de arquitetura e telas dos quatro módulos, sem dados pessoais.]")
+body(doc, "Quadro-resumo dos módulos: Módulo 1 — riscos psicossociais "
+     "(NR-1/ISO 45003); Módulo 2 — permissão de trabalho (NR-10/NR-35); "
+     "Módulo 3 — Avaliação Ergonômica Preliminar (NR-17); Módulo 4 — acidentes "
+     "e quase acidentes (NR-1).", indent=False)
 
 doc.save(OUT)
 print(f"OK: {OUT} gerado.")
