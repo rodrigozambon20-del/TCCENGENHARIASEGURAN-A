@@ -29,11 +29,15 @@ INTRO = [
     "de risco psicossocial relacionados ao trabalho dentro do Gerenciamento de "
     "Riscos Ocupacionais (GRO) e do PGR, com exigibilidade a partir de 26 de "
     "maio de 2026.",
+    "A urgência é reforçada pelo reconhecimento da síndrome de burnout como "
+    "doença ocupacional na CID-11 (código QD85), adotada oficialmente no Brasil "
+    "a partir de 2025, e pelo crescimento dos afastamentos por saúde mental "
+    "(TREML et al., 2025; ANAMT, 2026).",
     "Na maioria das organizações esse ciclo ainda é feito em papel ou planilhas "
     "avulsas, com baixa rastreabilidade e alto custo. No setor de distribuição "
     "de energia elétrica, os fatores psicossociais (pressão por "
     "restabelecimento, turnos, sobreaviso, risco de acidente grave) convivem "
-    "com riscos regulados pela NR-10 e pela NR-35.",
+    "com riscos regulados pela NR-10 e pela NR-35 (SOUZA et al., 2010).",
     "Objetivo: desenvolver e aplicar uma plataforma digital de baixo custo para "
     "operacionalizar a gestão de riscos psicossociais conforme a NR-1, "
     "integrada a outros processos de SST sobre a mesma base de dados.",
@@ -57,12 +61,14 @@ METODOLOGIA = [
 ]
 
 ESTUDO_CASO = [
-    "A aplicação piloto foi conduzida em [PREENCHER: empresa/unidade do setor "
-    "de distribuição de energia], no período de [PREENCHER: período], com "
-    "[PREENCHER: número] trabalhadores dos setores de [PREENCHER: setores].",
+    "A aplicação piloto foi conduzida em uma organização do setor de "
+    "distribuição de energia elétrica, preservada em anonimato, no período de "
+    "[PREENCHER: período], com [PREENCHER: número] trabalhadores dos setores de "
+    "[PREENCHER: setores]. Não se coletam dados que identifiquem a organização "
+    "ou as pessoas.",
     "O link da avaliação anônima foi distribuído por [PREENCHER: canal — ex.: "
     "QR code em DDS], precedido de comunicação sobre o caráter voluntário e "
-    "anônimo da participação.",
+    "anônimo da participação, em conformidade com a LGPD.",
     "As permissões de trabalho (Módulo 2) foram testadas em campo em atividades "
     "de [PREENCHER: ex.: manutenção de rede desenergizada / linha viva / "
     "trabalho em altura em postes], com checklist, geolocalização e assinatura "
@@ -98,9 +104,11 @@ REFERENCIAS = [
     "BRASIL. NR-1 — Disposições gerais e gerenciamento de riscos ocupacionais. "
     "Redação da Portaria MTE nº 1.419/2024.",
     "BRASIL. NR-10 — Segurança em instalações e serviços em eletricidade.",
-    "BRASIL. NR-17 — Ergonomia. Redação da Portaria MTP nº 423/2021.",
-    "ISO 45003:2021 — Occupational health and safety — Psychological health and "
-    "safety at work.",
+    "ISO 45003:2021 — Psychological health and safety at work.",
+    "SOUZA, S. F. et al. Fatores psicossociais do trabalho e transtornos "
+    "mentais comuns em eletricitários. Rev. Saúde Pública, v. 44, n. 4, 2010.",
+    "TREML, M. F. Q. et al. Burnout syndrome in Brazil (2014–2024). Rev. Bras. "
+    "Medicina do Trabalho, 2025.",
     "WHO. Guidelines on mental health at work. Geneva, 2022.",
 ]
 
@@ -108,7 +116,8 @@ HEADER = {
     "tema": "GESTÃO DIGITAL DE RISCOS PSICOSSOCIAIS CONFORME A NR-1: "
             "plataforma de SST aplicada à distribuição de energia elétrica",
     "autor": "Rodrigo Zambon [PREENCHER: nome completo]",
-    "contato": "[PREENCHER: e-mail]  ·  Orientador(a): [PREENCHER: nome]",
+    "contato": "[PREENCHER: e-mail]  ·  Supervisão: [PREENCHER: nome]  ·  "
+               "Apoio: CERPRO",
 }
 
 # ------------------------------------------------------------------ helpers ---

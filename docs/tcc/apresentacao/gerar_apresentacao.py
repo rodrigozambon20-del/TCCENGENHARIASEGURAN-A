@@ -130,7 +130,7 @@ tf = tb.text_frame
 set_para(tf.paragraphs[0], "Rodrigo Zambon  [PREENCHER: nome completo]",
          18, GOLD, bold=True, space_after=4)
 set_para(tf.add_paragraph(),
-         "Orientador(a): [PREENCHER]   ·   Especialização em Engenharia de "
+         "Supervisão: [PREENCHER]   ·   Especialização em Engenharia de "
          "Segurança do Trabalho — PECE/EPUSP", 14, RGBColor(0xAE,0xB8,0xC9))
 set_para(tf.add_paragraph(), "São Paulo · [PREENCHER: data da defesa]",
          14, RGBColor(0xAE,0xB8,0xC9))
@@ -199,16 +199,22 @@ title_bar(s, "Fundamentação", "Do conceito às seis dimensões avaliadas")
 bullets(s, [
     "Fatores psicossociais: aspectos da organização e gestão do trabalho com "
     "potencial de dano — abordagem organizacional, não diagnóstico individual.",
-    "Modelos de base: demanda-controle (Karasek), esforço-recompensa "
-    "(Siegrist), multidimensional (COPSOQ).",
+    "Modelos de base: demanda-controle-apoio (Karasek; Johnson & Hall), "
+    "esforço-recompensa (Siegrist), multidimensional (COPSOQ).",
+    "Burnout como desfecho: reconhecido na CID-11 (QD85), doença ocupacional "
+    "adotada no Brasil desde 2025; afastamentos em alta (Treml et al., 2025).",
     "ISO 45003:2021: primeira norma internacional de riscos psicossociais; "
     "recomenda integrar ao sistema de gestão de SST existente.",
+    "Setor elétrico: maior prevalência de transtornos mentais comuns com alta "
+    "demanda, baixo controle e baixo apoio (Souza et al., 2010).",
     "Seis dimensões adotadas: carga e ritmo · autonomia e controle · clareza "
     "de papel · apoio social e de liderança · reconhecimento · assédio e "
     "violência.",
-])
+], size=17)
 notes(s, "Mostrar que a seleção das dimensões tem lastro teórico e alinhamento "
-         "com a ISO 45003 e o Guia do MTE. Reforçar: avalia a organização.")
+         "com a ISO 45003 e o Guia do MTE. Reforçar: avalia a organização, não "
+         "o indivíduo. Citar o burnout (CID-11) como o desfecho que a gestão "
+         "psicossocial ajuda a prevenir — é um ponto cobrado na avaliação.")
 
 # ============================================ 6. METODOLOGIA ===================
 s = slide(); bg(s, WHITE)
@@ -217,7 +223,8 @@ bullets(s, [
     "Pesquisa aplicada/tecnológica: desenvolvimento de artefato + estudo de "
     "caso com aplicação piloto.",
     "Três decisões de arquitetura: custo zero · sem instalação · anonimato "
-    "por construção (LGPD).",
+    "por construção (LGPD) — sem nome, sem dados que identifiquem pessoas ou "
+    "a organização estudada.",
     "Frontend: página web autocontida (abre no navegador do celular). "
     "Backend: Google Apps Script + Sheets como repositório único.",
     "Instrumento: 10 afirmativas positivas, escala Likert 1–5; média por "
@@ -286,7 +293,8 @@ bullets(s, [
     "operação nulo.",
     "Fluxo do Módulo 1 sem qualquer etapa manual de tabulação.",
     "[PREENCHER: nº de respondentes, taxa de adesão e nota média / faixa de "
-    "risco por dimensão — inserir tabela e gráfico do painel real].",
+    "risco por dimensão — inserir tabela e gráfico agregado, sem identificar a "
+    "organização].",
     "[PREENCHER: transcrever o texto do IRO gerado pela plataforma no piloto, "
     "como evidência do produto final].",
 ], height=Inches(3.6))
@@ -340,9 +348,12 @@ set_para(tf.add_paragraph(),
          space_after=4)
 set_para(tf.add_paragraph(),
          "Psike — plataforma de gestão de riscos psicossociais (NR-1)",
-         15, RGBColor(0xC7,0xCE,0xDB))
-notes(s, "Agradecer à banca e ao orientador. Sinalizar disponibilidade para a "
-         "arguição. Ter o app aberto para eventual demonstração ao vivo.")
+         15, RGBColor(0xC7,0xCE,0xDB), space_after=10)
+set_para(tf.add_paragraph(), "Agradecimento: CERPRO", 13,
+         RGBColor(0xAE,0xB8,0xC9))
+notes(s, "Agradecer à banca, à supervisão da monografia e à CERPRO. Sinalizar "
+         "disponibilidade para a arguição. Ter o app aberto para eventual "
+         "demonstração ao vivo.")
 
 OUT = os.path.join(os.path.dirname(__file__), "Apresentacao_Banca_Psike.pptx")
 prs.save(OUT)
