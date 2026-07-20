@@ -90,13 +90,20 @@ class OrchestratorAgent(BaseAgent):
         if conviction < MIN_CONVICTION:
             return
 
-        # Níveis: stop = 1.5x ATR; alvo no S/R mais próximo na direção do trade
         price = quant.last_price
-        atr = quant.atr or price * 0.01
-        if quant.direction == Direction.LONG:
+        if quant.strategy == "pullback":
+            # Estratégia vencedora do backtest: risco inicial = trailing %,
+            # saída real fica por conta do stop móvel do Risk Manager
+            trail = self.config.risk.default_trailing_stop_pct
+            stop = price * (1 - trail / 100)
+            target = price * (1 + 2 * trail / 100)   # R:R formal de 2:1
+        elif quant.direction == Direction.LONG:
+            # Modo votes: stop = 1.5x ATR; alvo no S/R na direção do trade
+            atr = quant.atr or price * 0.01
             stop = max(price - 1.5 * atr, (quant.support or 0) * 0.999)
             target = quant.resistance or price + 3 * atr
         else:
+            atr = quant.atr or price * 0.01
             stop = min(price + 1.5 * atr, (quant.resistance or 1e18) * 1.001)
             target = quant.support or price - 3 * atr
 

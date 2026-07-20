@@ -30,6 +30,15 @@ class MultiAgentMirrorStrategy(bt.Strategy):
         trailing_pct=1.5,
         min_rr=1.5,
         max_daily_dd_pct=3.0,
+        # --- Filtros opcionais (laboratório de melhoria) ---
+        min_vote=0.35,       # score mínimo de confluência para entrar
+        trend_bars=0,        # >0: só compra acima da SMA(n barras) — use n = dias
+                             #     x barras/dia p/ emular a média DIÁRIA
+        max_atr_pct=0.0,     # >0: não entra se ATR% > limite (volatilidade extrema)
+        mode="votes",        # "votes" (original) | "pullback" (recuo na tendência)
+        pullback_rsi=45.0,   # modo pullback: RSI máximo para considerar "recuo"
+        exit_mode="bracket", # "bracket" (stop+alvo fixos) | "trail" (stop móvel)
+        trail_pct=8.0,       # modo trail: distância % do stop móvel
     )
 
     def __init__(self) -> None:
@@ -38,6 +47,9 @@ class MultiAgentMirrorStrategy(bt.Strategy):
         self.bb = bt.ind.BollingerBands(period=self.p.bb_period,
                                         devfactor=self.p.bb_dev)
         self.atr = bt.ind.ATR(period=self.p.atr_period)
+        self.daily_sma = None
+        if self.p.trend_bars:
+            self.daily_sma = bt.ind.SMA(self.data.close, period=self.p.trend_bars)
         self.order = None
         self.day_start_value = None
         self.current_day = None
@@ -83,20 +95,44 @@ class MultiAgentMirrorStrategy(bt.Strategy):
         vote = self.quant_vote()
 
         if not self.position:
-            if vote >= 0.35:  # min_score_to_signal do config
-                stop = price - self.p.atr_stop_mult * self.atr[0]
-                target = price + self.p.min_rr * (price - stop)
-                size = self.position_size(price, stop)
-                if size > 0:
-                    # bracket = entrada + stop + alvo, como o OCO em produção
-                    self.order = self.buy_bracket(
-                        size=size, price=price,
-                        stopprice=stop, limitprice=target,
-                        exectype=bt.Order.Market)[0]
-        # (Trailing stop pode ser adicionado com bt.Order.StopTrail
-        #  usando trailpercent=self.p.trailing_pct / 100)
+            # Filtro 1: tendência do gráfico diário — só compra em mercado de alta
+            if self.daily_sma is not None and price < self.daily_sma[0]:
+                return
+            # Filtro 2: volatilidade extrema — fora do mercado em pânico
+            if self.p.max_atr_pct and (self.atr[0] / price * 100) > self.p.max_atr_pct:
+                return
+            # Sinal de entrada conforme o modo
+            if self.p.mode == "pullback":
+                # Recuo dentro da tendência: RSI respirou E preço voltou à média
+                should_enter = (self.rsi[0] <= self.p.pullback_rsi
+                                and price <= self.bb.lines.mid[0])
+            else:
+                # Filtro 3 (modo votes): exigência de confluência mínima
+                should_enter = vote >= self.p.min_vote
+            if should_enter:
+                if self.p.exit_mode == "trail":
+                    # Saída por stop móvel: risco inicial = trail_pct
+                    stop = price * (1 - self.p.trail_pct / 100)
+                    size = self.position_size(price, stop)
+                    if size > 0:
+                        self.order = self.buy(size=size)
+                else:
+                    stop = price - self.p.atr_stop_mult * self.atr[0]
+                    target = price + self.p.min_rr * (price - stop)
+                    size = self.position_size(price, stop)
+                    if size > 0:
+                        # bracket = entrada + stop + alvo, como o OCO em produção
+                        self.order = self.buy_bracket(
+                            size=size, price=price,
+                            stopprice=stop, limitprice=target,
+                            exectype=bt.Order.Market)[0]
 
     def notify_order(self, order) -> None:
+        if order.status == order.Completed and order.isbuy() \
+                and self.p.exit_mode == "trail":
+            # Arma o stop móvel logo após o fill da entrada
+            self.sell(size=order.executed.size, exectype=bt.Order.StopTrail,
+                      trailpercent=self.p.trail_pct / 100)
         if order.status in (order.Completed, order.Canceled,
                             order.Margin, order.Rejected):
             self.order = None

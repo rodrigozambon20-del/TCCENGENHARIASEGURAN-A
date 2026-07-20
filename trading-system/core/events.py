@@ -64,6 +64,7 @@ class QuantSignal(BaseEvent):
     """Emitido pelo Agente Quant após varredura multi-timeframe."""
     symbol: str = "BTC/USDT"
     direction: Direction = Direction.FLAT
+    strategy: str = "votes"       # "votes" | "pullback" (define stops no orquestrador)
     score: float = 0.0            # -1..+1 confluência técnica
     timeframe_votes: dict[str, float] = field(default_factory=dict)  # {"1m": 0.3, "1h": 0.8, ...}
     support: Optional[float] = None

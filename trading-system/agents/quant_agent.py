@@ -52,6 +52,7 @@ class QuantAgent(BaseAgent):
     async def analyze_symbol(self, symbol: str) -> QuantSignal | None:
         cfg = self.config.quant
         votes: dict[str, float] = {}
+        closes_by_tf: dict[str, np.ndarray] = {}
         atr_1h = None
         last_close = None
         support = resistance = None
@@ -64,6 +65,7 @@ class QuantAgent(BaseAgent):
             highs = np.array([c[2] for c in ohlcv], dtype=float)
             lows = np.array([c[3] for c in ohlcv], dtype=float)
             last_close = closes[-1]
+            closes_by_tf[tf] = closes
 
             votes[tf] = self.score_timeframe(closes, cfg)
             if tf == "1h":
@@ -73,12 +75,42 @@ class QuantAgent(BaseAgent):
         if not votes or last_close is None:
             return None
 
-        # Score final: média ponderada dos timeframes
-        total_w = sum(cfg.timeframe_weights.get(tf, 0.1) for tf in votes)
-        score = sum(v * cfg.timeframe_weights.get(tf, 0.1) for tf, v in votes.items()) / total_w
-
         # Order flow: desequilíbrio bid/ask nos topos do livro
         imbalance = await self.orderbook_imbalance(symbol)
+
+        # ------------------------------------------------------------------
+        # MODO PULLBACK (vencedor do laboratório de backtest 2024-2026):
+        # só compra o RECUO dentro de tendência de ALTA do gráfico diário.
+        # Condições: preço > SMA(50) diária E RSI(1h) <= 45 E preço <= média
+        # das Bandas de Bollinger 1h. Saída fica por conta do trailing stop.
+        # ------------------------------------------------------------------
+        if cfg.mode == "pullback":
+            daily = closes_by_tf.get("1d")
+            hourly = closes_by_tf.get("1h")
+            if daily is None or hourly is None or len(daily) < cfg.trend_sma_days:
+                return None
+            price = float(hourly[-1])
+            sma_daily = float(daily[-cfg.trend_sma_days:].mean())
+            rsi_1h = self.rsi(hourly, cfg.rsi_period)
+            bb_mid_1h = float(hourly[-cfg.bollinger_period:].mean())
+
+            uptrend = price > sma_daily
+            in_pullback = rsi_1h <= cfg.pullback_rsi and price <= bb_mid_1h
+            if not (uptrend and in_pullback):
+                return None
+            self.log.info("%s: PULLBACK detectado (preço %.2f > SMA%dd %.2f, "
+                          "RSI1h %.1f, abaixo da média BB)", symbol, price,
+                          cfg.trend_sma_days, sma_daily, rsi_1h)
+            return QuantSignal(
+                symbol=symbol, direction=Direction.LONG, strategy="pullback",
+                score=0.8, timeframe_votes=votes, support=support,
+                resistance=resistance, atr=atr_1h, last_price=price,
+                orderflow_imbalance=float(imbalance),
+            )
+
+        # Modo VOTES (original): média ponderada dos timeframes + order flow
+        total_w = sum(cfg.timeframe_weights.get(tf, 0.1) for tf in votes)
+        score = sum(v * cfg.timeframe_weights.get(tf, 0.1) for tf, v in votes.items()) / total_w
         score = 0.8 * score + 0.2 * imbalance
 
         direction = (Direction.LONG if score > 0

@@ -35,6 +35,11 @@ class RiskConfig:
 
 @dataclass
 class QuantConfig:
+    # "pullback" = recuo na tendência (vencedora do backtest 2024-2026);
+    # "votes" = confluência multi-indicador original
+    mode: str = "pullback"
+    trend_sma_days: int = 50          # pullback: só compra acima da SMA(n) diária
+    pullback_rsi: float = 45.0        # pullback: RSI 1h máximo p/ considerar recuo
     timeframes: list[str] = field(default_factory=lambda: ["1m", "5m", "15m", "1h", "1d"])
     timeframe_weights: dict[str, float] = field(
         default_factory=lambda: {"1m": 0.10, "5m": 0.15, "15m": 0.20, "1h": 0.30, "1d": 0.25})

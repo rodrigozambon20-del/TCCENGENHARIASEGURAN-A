@@ -11,10 +11,16 @@ risk:
   max_weekly_drawdown_pct: 8.0     # circuit breaker semanal
   max_consecutive_losses: 4
   max_trades_per_day: 10
-  default_trailing_stop_pct: 1.5
+  default_trailing_stop_pct: 8.0   # trailing da estratégia pullback (backtest)
   min_risk_reward_ratio: 1.5
 
 quant:
+  # Estratégia "pullback": comprar o recuo na tendência de alta diária.
+  # Vencedora do laboratório de backtest (2024-2026): BTC 1h +8.6% com
+  # drawdown máx 3.3%, contra -44% da estratégia original.
+  mode: "pullback"                 # "pullback" | "votes" (original)
+  trend_sma_days: 50
+  pullback_rsi: 45.0
   timeframes: ["1m", "5m", "15m", "1h", "1d"]
   timeframe_weights: {"1m": 0.10, "5m": 0.15, "15m": 0.20, "1h": 0.30, "1d": 0.25}
   rsi_period: 14
