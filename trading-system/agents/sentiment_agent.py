@@ -1,31 +1,30 @@
 """
 AGENTE 1 — ANÁLISE MACRO E SENTIMENTO (News & Social Sentiment)
 
-Responsabilidades:
-1. Coletar manchetes de portais financeiros (RSS/APIs: CoinTelegraph,
-   CoinDesk, agregadores como CryptoPanic; Bloomberg/Reuters via API paga)
-   e redes sociais (X/Twitter API v2, Reddit via PRAW).
-2. Classificar sentimento com NLP. Duas opções de motor, em cascata:
-   a) Modelo local rápido (VADER/FinBERT) — baixa latência, custo zero;
-   b) LLM (Claude) para manchetes ambíguas ou de alto impacto — melhor
-      compreensão de contexto macro ("Fed segura juros" != "hack de $500M").
-3. Ponderar o score pela credibilidade da fonte (Bloomberg pesa mais que
-   um tweet) e pelo frescor da notícia (decaimento exponencial).
-4. GATILHO DE RESPOSTA RÁPIDA: notícia catastrófica (hack de exchange,
-   ação regulatória, colapso de stablecoin) publica DEFENSIVE_MODE
-   imediatamente, sem esperar o ciclo do orquestrador.
+Fontes: 100% GRATUITAS e internacionais (ver datasources/news_connectors.py):
+RSS de CoinTelegraph/CoinDesk/Decrypt/Bitcoin Magazine, Google News,
+Reddit (JSON público) e Fear & Greed Index. CryptoPanic opcional (token grátis).
+
+Motor NLP: VADER com léxico estendido para o vocabulário cripto/financeiro
+("hack", "ETF approval", "depeg"...). Roda 100% local, custo zero e latência
+de milissegundos. Fontes que já entregam score numérico (Fear & Greed)
+pulam o NLP.
+
+Ponderação: score de cada manchete x credibilidade da fonte x frescor
+(meia-vida de 30 min). GATILHO RÁPIDO: manchete com palavra catastrófica
+publica DEFENSIVE_MODE imediatamente, antes de qualquer agregação.
 """
 from __future__ import annotations
 
 import asyncio
 import math
 import time
-from dataclasses import dataclass
 
 from agents.base import BaseAgent
 from core.events import DefensiveMode, Sentiment, SentimentSignal, Topic
+from datasources.news_connectors import NewsAggregator, NewsItem
 
-# Palavras-gatilho de evento catastrófico (verificadas ANTES do NLP,
+# Palavras-gatilho de evento catastrófico (checadas ANTES do NLP,
 # para latência mínima na resposta defensiva)
 CATASTROPHIC_KEYWORDS = (
     "hack", "hacked", "exploit", "bankruptcy", "insolvency", "insolvent",
@@ -33,47 +32,52 @@ CATASTROPHIC_KEYWORDS = (
     "flash crash", "liquidation cascade",
 )
 
+# Léxico adicional p/ o VADER: vocabulário do mercado cripto que o léxico
+# padrão (redes sociais genéricas) não conhece. Escala VADER: -4..+4.
+CRYPTO_LEXICON = {
+    "hack": -3.5, "hacked": -3.5, "exploit": -3.0, "stolen": -3.0,
+    "bankruptcy": -3.5, "insolvent": -3.5, "lawsuit": -2.0, "sued": -2.0,
+    "ban": -2.5, "banned": -2.5, "crackdown": -2.0, "depeg": -3.0,
+    "liquidation": -2.0, "liquidations": -2.0, "selloff": -2.0,
+    "sell-off": -2.0, "plunge": -2.5, "plunges": -2.5, "crash": -3.0,
+    "dump": -2.0, "fud": -1.5, "bearish": -2.0, "correction": -1.0,
+    "rally": 2.0, "rallies": 2.0, "surge": 2.5, "surges": 2.5,
+    "soar": 2.5, "soars": 2.5, "breakout": 2.0, "bullish": 2.0,
+    "adoption": 1.5, "approval": 2.0, "approved": 2.0, "etf": 0.5,
+    "halving": 1.0, "institutional": 1.0, "accumulation": 1.5,
+    "all-time high": 3.0, "ath": 2.0, "moon": 1.5, "pump": 1.5,
+    "upgrade": 1.0, "partnership": 1.0,
+}
 
-@dataclass
-class NewsItem:
-    source: str          # "bloomberg", "twitter", ...
-    headline: str
-    published_at: float
+
+def _build_vader():
+    """VADER com léxico cripto; fallback simples se a lib não estiver instalada."""
+    try:
+        from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+        analyzer = SentimentIntensityAnalyzer()
+        analyzer.lexicon.update(CRYPTO_LEXICON)
+        return analyzer
+    except ImportError:
+        return None
 
 
 class SentimentAgent(BaseAgent):
     name = "sentiment_agent"
 
+    def __init__(self, bus, state, config) -> None:
+        super().__init__(bus, state, config)
+        self.aggregator = NewsAggregator()
+        self.vader = _build_vader()
+        if self.vader is None:
+            self.log.warning("vaderSentiment não instalado — usando léxico simples")
+
     async def run(self) -> None:
         cfg = self.config.sentiment
         while True:
-            items = await self.fetch_news()
+            items = await self.aggregator.fetch_all()
             if items:
                 await self.process_batch(items)
             await asyncio.sleep(cfg.poll_interval_seconds)
-
-    # ------------------------------------------------------------------ #
-    # Coleta                                                             #
-    # ------------------------------------------------------------------ #
-    async def fetch_news(self) -> list[NewsItem]:
-        """
-        TEMPLATE: integre aqui seus conectores reais.
-
-        - RSS gratuito:  feedparser em https://cointelegraph.com/rss
-        - CryptoPanic:   GET https://cryptopanic.com/api/v1/posts/?auth_token=...
-        - X/Twitter v2:  filtered stream com regras ("BTC", "Binance", "SEC")
-        - Reddit:        PRAW em r/CryptoCurrency (hot + new)
-
-        Todos os conectores devem rodar com timeout e falhar de forma
-        isolada (uma fonte fora do ar não pode travar o agente).
-        """
-        results: list[NewsItem] = []
-        # for connector in self.connectors:
-        #     try:
-        #         results += await asyncio.wait_for(connector.fetch(), timeout=10)
-        #     except Exception as exc:
-        #         self.log.warning("Fonte %s indisponível: %s", connector.name, exc)
-        return results
 
     # ------------------------------------------------------------------ #
     # NLP e agregação                                                    #
@@ -91,8 +95,10 @@ class SentimentAgent(BaseAgent):
             if any(k in lowered for k in CATASTROPHIC_KEYWORDS):
                 await self.trigger_defensive(item)
 
-            # 2) Score NLP (-1..+1)
-            raw_score = await self.classify(item.headline)
+            # 2) Score: pronto (Fear & Greed) ou via NLP local
+            raw_score = (item.precomputed_score
+                         if item.precomputed_score is not None
+                         else self.classify(item.headline))
 
             # 3) Peso = credibilidade da fonte x decaimento temporal (meia-vida 30 min)
             source_w = cfg.source_weights.get(item.source, 0.2)
@@ -123,27 +129,17 @@ class SentimentAgent(BaseAgent):
             await self.emit(Topic.DEFENSIVE_MODE, DefensiveMode(
                 enabled=True, reason=f"Sentimento catastrófico agregado ({score:.2f})"))
         await self.emit(Topic.SENTIMENT_SIGNAL, signal)
-        self.log.info("Sentimento: %s score=%.2f conf=%.2f (%d manchetes)",
+        self.log.info("Sentimento: %s score=%.2f conf=%.2f (%d manchetes novas)",
                       sentiment.value, score, confidence, len(items))
 
-    async def classify(self, headline: str) -> float:
-        """
-        TEMPLATE do motor NLP em cascata.
-
-        Camada 1 (sempre): modelo local
-            from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-            return SentimentIntensityAnalyzer().polarity_scores(headline)["compound"]
-
-        Camada 2 (só p/ manchetes de alto impacto, |score| ambíguo):
-            resposta = await anthropic_client.messages.create(
-                model="claude-sonnet-5",
-                max_tokens=10,
-                messages=[{"role": "user", "content":
-                    f"Classifique o impacto desta manchete no preço do Bitcoin "
-                    f"nas próximas horas. Responda só um número entre -1 e 1: {headline}"}])
-            return float(resposta.content[0].text)
-        """
-        return 0.0
+    def classify(self, headline: str) -> float:
+        """Score -1..+1 da manchete. VADER local (rápido e gratuito)."""
+        if self.vader is not None:
+            return float(self.vader.polarity_scores(headline)["compound"])
+        # Fallback sem dependências: soma do léxico cripto normalizada
+        lowered = headline.lower()
+        raw = sum(v for k, v in CRYPTO_LEXICON.items() if k in lowered)
+        return max(-1.0, min(1.0, raw / 4.0))
 
     async def trigger_defensive(self, item: NewsItem) -> None:
         """Resposta rápida: <1s entre detecção e bloqueio de novas entradas."""

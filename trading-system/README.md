@@ -13,8 +13,8 @@ veto obrigatório de um Risk Manager antes de qualquer ordem.
 ```mermaid
 flowchart TB
     subgraph Fontes externas
-        NEWS[Notícias RSS/APIs<br/>CoinTelegraph, CryptoPanic,<br/>Bloomberg, Reuters]
-        SOCIAL[X/Twitter, Reddit]
+        NEWS[Notícias RSS gratuitas<br/>CoinTelegraph, CoinDesk,<br/>Decrypt, Bitcoin Magazine,<br/>Google News]
+        SOCIAL[Reddit JSON público<br/>Fear & Greed Index]
         BINANCE[(Binance<br/>REST + WebSocket)]
     end
 
@@ -101,6 +101,22 @@ trading-system/
 ├── backtest/strategy_backtrader.py  # espelho da estratégia p/ validação
 └── config/config.yaml          # parâmetros de risco e estratégia
 ```
+
+## Fontes de dados — 100% gratuitas
+
+| Fonte | Tipo | Chave necessária? |
+|-------|------|-------------------|
+| CoinTelegraph, CoinDesk, Decrypt, Bitcoin Magazine | RSS | Não |
+| Google News (busca "bitcoin OR crypto", 24h) | RSS | Não |
+| Reddit r/CryptoCurrency, r/Bitcoin | JSON público | Não |
+| Fear & Greed Index (alternative.me) | API pública | Não |
+| CryptoPanic (opcional) | API | Token **gratuito** |
+| Binance (preços, book, klines) | ccxt/WebSocket | Grátis p/ dados públicos |
+
+O NLP é o **VADER local com léxico cripto estendido** (`agents/sentiment_agent.py`)
+— zero custo, latência de milissegundos, sem enviar dados a terceiros.
+Cada fonte roda isolada com timeout e deduplicação de 24h: uma fonte fora
+do ar não afeta as demais.
 
 ## Segurança na API da Binance
 

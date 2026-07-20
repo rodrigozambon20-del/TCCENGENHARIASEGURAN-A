@@ -45,8 +45,9 @@ class SentimentConfig:
     poll_interval_seconds: int = 60
     source_weights: dict[str, float] = field(
         default_factory=lambda: {
-            "bloomberg": 1.0, "reuters": 1.0, "cointelegraph": 0.7,
-            "coindesk": 0.7, "twitter": 0.4, "reddit": 0.3,
+            "coindesk": 0.9, "cointelegraph": 0.8, "decrypt": 0.7,
+            "bitcoinmagazine": 0.6, "google_news": 0.6, "cryptopanic": 0.6,
+            "fear_greed": 0.8, "reddit": 0.3,
         })
     catastrophic_score_threshold: float = -0.75
     catastrophic_confidence_threshold: float = 0.6

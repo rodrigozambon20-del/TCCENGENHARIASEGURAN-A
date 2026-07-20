@@ -26,8 +26,10 @@ quant:
 
 sentiment:
   poll_interval_seconds: 60
-  source_weights: {"bloomberg": 1.0, "reuters": 1.0, "cointelegraph": 0.7,
-                   "coindesk": 0.7, "twitter": 0.4, "reddit": 0.3}
+  # Fontes gratuitas — peso = credibilidade relativa
+  source_weights: {"coindesk": 0.9, "cointelegraph": 0.8, "decrypt": 0.7,
+                   "bitcoinmagazine": 0.6, "google_news": 0.6,
+                   "cryptopanic": 0.6, "fear_greed": 0.8, "reddit": 0.3}
   catastrophic_score_threshold: -0.75
   catastrophic_confidence_threshold: 0.6
 
