@@ -94,17 +94,22 @@ class BinanceClient:
         return float(ticker["last"])
 
     async def fetch_total_equity(self) -> float | None:
-        """Equity total da conta convertida para a moeda de cotação."""
+        """Equity total da conta convertida para a moeda de cotação.
+
+        Usa fetch_tickers (1 chamada para todos os preços) em vez de um
+        request por ativo — inicialização e watchdog muito mais rápidos.
+        """
         balance = await self._call(self.exchange.fetch_balance)
         total = float(balance["total"].get(self.quote, 0.0))
-        for asset, qty in balance["total"].items():
-            if asset == self.quote or not qty:
-                continue
-            try:
-                price = await self.fetch_last_price(f"{asset}/{self.quote}")
-                total += qty * price
-            except Exception:
-                continue  # ativo sem par direto — ignorado no cálculo
+        others = {a: q for a, q in balance["total"].items()
+                  if a != self.quote and q}
+        if not others:
+            return total
+        tickers = await self._call(self.exchange.fetch_tickers)
+        for asset, qty in others.items():
+            ticker = tickers.get(f"{asset}/{self.quote}")
+            if ticker and ticker.get("last"):
+                total += qty * float(ticker["last"])
         return total
 
     # ------------------------------------------------------------------ #
@@ -133,7 +138,10 @@ class BinanceClient:
             return None  # já preenchida/cancelada — ok
 
     async def cancel_all_orders(self, symbol: str):
-        return await self._call(self.exchange.cancel_all_orders, symbol)
+        try:
+            return await self._call(self.exchange.cancel_all_orders, symbol)
+        except (ccxt.InvalidOrder, ccxt.OrderNotFound):
+            return None  # Binance -2011: não havia ordens abertas — nada a fazer
 
     # ------------------------------------------------------------------ #
     # Proteção na exchange (stop + take profit)                          #
