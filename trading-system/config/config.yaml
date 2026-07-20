@@ -1,0 +1,39 @@
+# Configuração de estratégia e risco (SEM segredos — segredos vão no .env)
+symbols: ["BTC/USDT", "ETH/USDT"]
+initial_equity: 10000
+testnet: true            # mude para false SOMENTE após semanas de paper trading
+
+risk:
+  max_risk_per_trade_pct: 1.0      # 1% do capital em risco por operação
+  max_position_pct: 10.0           # exposição nominal máxima por posição
+  max_open_positions: 3
+  max_daily_drawdown_pct: 3.0      # circuit breaker diário
+  max_weekly_drawdown_pct: 8.0     # circuit breaker semanal
+  max_consecutive_losses: 4
+  max_trades_per_day: 10
+  default_trailing_stop_pct: 1.5
+  min_risk_reward_ratio: 1.5
+
+quant:
+  timeframes: ["1m", "5m", "15m", "1h", "1d"]
+  timeframe_weights: {"1m": 0.10, "5m": 0.15, "15m": 0.20, "1h": 0.30, "1d": 0.25}
+  rsi_period: 14
+  bollinger_period: 20
+  bollinger_std: 2.0
+  kama_period: 10
+  atr_period: 14
+  min_score_to_signal: 0.35
+
+sentiment:
+  poll_interval_seconds: 60
+  source_weights: {"bloomberg": 1.0, "reuters": 1.0, "cointelegraph": 0.7,
+                   "coindesk": 0.7, "twitter": 0.4, "reddit": 0.3}
+  catastrophic_score_threshold: -0.75
+  catastrophic_confidence_threshold: 0.6
+
+execution:
+  prefer_limit_orders: true
+  limit_offset_bps: 2.0
+  limit_timeout_seconds: 20
+  max_slippage_bps: 15.0
+  order_poll_interval: 1.0

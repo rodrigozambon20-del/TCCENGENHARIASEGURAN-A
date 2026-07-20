@@ -1,0 +1,98 @@
+{
+  "name": "Trading Bot - Roteador de Notificações",
+  "meta": {
+    "description": "Recebe eventos do bot via webhook e roteia por severidade: critical -> Telegram + WhatsApp imediato; warning -> Telegram; info -> Telegram (agrupado) + linha no Google Sheets como diário de trades. Um segundo fluxo (Schedule Trigger a cada 5 min) faz GET no /health do bot e alerta se algum agente parar de responder."
+  },
+  "nodes": [
+    {
+      "name": "Webhook (entrada do bot)",
+      "type": "n8n-nodes-base.webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "trading-bot",
+        "options": { "responseCode": 200 }
+      },
+      "position": [240, 300]
+    },
+    {
+      "name": "Switch por severidade",
+      "type": "n8n-nodes-base.switch",
+      "parameters": {
+        "propertyName": "level",
+        "rules": [
+          { "value2": "critical" },
+          { "value2": "warning" },
+          { "value2": "info" }
+        ]
+      },
+      "position": [460, 300]
+    },
+    {
+      "name": "Telegram CRITICAL",
+      "type": "n8n-nodes-base.telegram",
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "🚨 {{ $json.title }}\n{{ $json.body }}",
+        "additionalFields": { "disable_notification": false }
+      },
+      "position": [700, 140]
+    },
+    {
+      "name": "WhatsApp CRITICAL (Twilio)",
+      "type": "n8n-nodes-base.twilio",
+      "parameters": {
+        "operation": "send",
+        "toWhatsapp": true,
+        "message": "🚨 {{ $json.title }} — {{ $json.body }}"
+      },
+      "position": [700, 260]
+    },
+    {
+      "name": "Telegram WARNING",
+      "type": "n8n-nodes-base.telegram",
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "⚠️ {{ $json.title }}\n{{ $json.body }}"
+      },
+      "position": [700, 400]
+    },
+    {
+      "name": "Telegram INFO",
+      "type": "n8n-nodes-base.telegram",
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "ℹ️ {{ $json.title }}\n{{ $json.body }}",
+        "additionalFields": { "disable_notification": true }
+      },
+      "position": [700, 540]
+    },
+    {
+      "name": "Google Sheets (diário de trades)",
+      "type": "n8n-nodes-base.googleSheets",
+      "parameters": {
+        "operation": "append",
+        "sheetName": "trades",
+        "columns": "ts,level,title,body,source"
+      },
+      "position": [920, 540]
+    }
+  ],
+  "connections": {
+    "Webhook (entrada do bot)": {
+      "main": [[{ "node": "Switch por severidade", "type": "main", "index": 0 }]]
+    },
+    "Switch por severidade": {
+      "main": [
+        [
+          { "node": "Telegram CRITICAL", "type": "main", "index": 0 },
+          { "node": "WhatsApp CRITICAL (Twilio)", "type": "main", "index": 0 }
+        ],
+        [{ "node": "Telegram WARNING", "type": "main", "index": 0 }],
+        [
+          { "node": "Telegram INFO", "type": "main", "index": 0 },
+          { "node": "Google Sheets (diário de trades)", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  }
+}

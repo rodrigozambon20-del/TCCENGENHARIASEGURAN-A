@@ -1,0 +1,15 @@
+ccxt>=4.3            # conexão unificada com a Binance (REST assíncrono)
+websockets>=12.0     # streams de mercado em tempo real
+numpy>=1.26          # indicadores vetorizados
+pyyaml>=6.0          # configuração
+aiohttp>=3.9         # webhook n8n
+python-dotenv>=1.0   # carga do .env
+
+# Sentimento (camada NLP local)
+feedparser>=6.0      # RSS de portais de notícias
+vaderSentiment>=3.3  # sentimento rápido/local
+# transformers + torch   # opcional: FinBERT
+# anthropic>=0.40        # opcional: LLM p/ manchetes ambíguas
+
+# Backtesting
+backtrader>=1.9.78
