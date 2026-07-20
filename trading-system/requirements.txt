@@ -13,3 +13,4 @@ vaderSentiment>=3.3  # sentimento rápido/local
 
 # Backtesting
 backtrader>=1.9.78
+pandas>=2.0

@@ -51,7 +51,7 @@ async def main() -> None:
     bus = EventBus()
     state = BotState(initial_equity=equity or config.initial_equity)
 
-    notifier = Notifier(bus, config.n8n_webhook_url)
+    notifier = Notifier(bus, config)
     agents = [
         RiskAgent(bus, state, config, exchange),        # guardião primeiro
         ExecutionAgent(bus, state, config, exchange),

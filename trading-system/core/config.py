@@ -81,6 +81,8 @@ class AppConfig:
     binance_api_key: str = ""
     binance_api_secret: str = ""
     n8n_webhook_url: str = ""
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
 
     @classmethod
     def load(cls, path: str | Path = "config/config.yaml") -> "AppConfig":
@@ -99,4 +101,6 @@ class AppConfig:
         cfg.binance_api_key = os.environ.get("BINANCE_API_KEY", "")
         cfg.binance_api_secret = os.environ.get("BINANCE_API_SECRET", "")
         cfg.n8n_webhook_url = os.environ.get("N8N_WEBHOOK_URL", "")
+        cfg.telegram_bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+        cfg.telegram_chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
         return cfg

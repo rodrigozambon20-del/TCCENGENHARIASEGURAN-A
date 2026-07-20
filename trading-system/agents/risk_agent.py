@@ -140,8 +140,8 @@ class RiskAgent(BaseAgent):
 
     STATUS_REPORT_EVERY = 60  # ciclos de 30s => placar a cada 30 min
 
-    def report_status(self) -> None:
-        """Placar: saldo, resultado do dia e posições — legível para humanos."""
+    async def report_status(self) -> None:
+        """Placar: saldo, resultado do dia e posições — no log e no Telegram."""
         s = self.state
         pnl_day = s.equity - s.day_start_equity
         pnl_pct = (pnl_day / s.day_start_equity * 100) if s.day_start_equity else 0.0
@@ -153,6 +153,12 @@ class RiskAgent(BaseAgent):
             "%s PLACAR | Saldo: %.2f USDT | Resultado do dia: %+.2f USDT (%+.2f%%) "
             "| Posições abertas: %s | Trades hoje: %d",
             emoji, s.equity, pnl_day, pnl_pct, positions, s.trades_today)
+        await self.emit(Topic.NOTIFICATION, Notification(
+            level="info", title=f"{emoji} Placar do bot",
+            body=(f"Saldo: {s.equity:,.2f} USDT\n"
+                  f"Resultado do dia: {pnl_day:+,.2f} USDT ({pnl_pct:+.2f}%)\n"
+                  f"Posições abertas: {positions}\n"
+                  f"Trades hoje: {s.trades_today}")))
 
     async def drawdown_watchdog(self) -> None:
         """Vigia independente: mesmo sem novas propostas, o drawdown é checado."""
@@ -171,7 +177,7 @@ class RiskAgent(BaseAgent):
                         await self.halt("Watchdog: drawdown semanal máximo",
                                         close_positions=True)
                 if cycles % self.STATUS_REPORT_EVERY == 0:
-                    self.report_status()
+                    await self.report_status()
             except Exception as exc:
                 self.log.warning("Watchdog: falha ao ler equity: %s", exc)
             cycles += 1
