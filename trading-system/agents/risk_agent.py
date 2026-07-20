@@ -138,9 +138,26 @@ class RiskAgent(BaseAgent):
                      "daily_dd": self.state.daily_drawdown_pct,
                      "weekly_dd": self.state.weekly_drawdown_pct}))
 
+    STATUS_REPORT_EVERY = 60  # ciclos de 30s => placar a cada 30 min
+
+    def report_status(self) -> None:
+        """Placar: saldo, resultado do dia e posições — legível para humanos."""
+        s = self.state
+        pnl_day = s.equity - s.day_start_equity
+        pnl_pct = (pnl_day / s.day_start_equity * 100) if s.day_start_equity else 0.0
+        emoji = "🟢" if pnl_day >= 0 else "🔴"
+        positions = (", ".join(f"{sym} {p.side} @ {p.entry_price:.2f}"
+                               for sym, p in s.open_positions.items())
+                     or "nenhuma")
+        self.log.info(
+            "%s PLACAR | Saldo: %.2f USDT | Resultado do dia: %+.2f USDT (%+.2f%%) "
+            "| Posições abertas: %s | Trades hoje: %d",
+            emoji, s.equity, pnl_day, pnl_pct, positions, s.trades_today)
+
     async def drawdown_watchdog(self) -> None:
         """Vigia independente: mesmo sem novas propostas, o drawdown é checado."""
         cfg = self.config.risk
+        cycles = 0
         while True:
             try:
                 equity = await self.md.fetch_total_equity()
@@ -153,8 +170,11 @@ class RiskAgent(BaseAgent):
                     elif self.state.weekly_drawdown_pct >= cfg.max_weekly_drawdown_pct:
                         await self.halt("Watchdog: drawdown semanal máximo",
                                         close_positions=True)
+                if cycles % self.STATUS_REPORT_EVERY == 0:
+                    self.report_status()
             except Exception as exc:
                 self.log.warning("Watchdog: falha ao ler equity: %s", exc)
+            cycles += 1
             await asyncio.sleep(30)
 
     # ------------------------------------------------------------------ #
