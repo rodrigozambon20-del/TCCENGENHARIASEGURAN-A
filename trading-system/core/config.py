@@ -13,6 +13,12 @@ from pathlib import Path
 
 import yaml
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # carrega o arquivo .env da pasta atual para o ambiente
+except ImportError:
+    pass  # sem python-dotenv, exige variáveis já exportadas no shell
+
 
 @dataclass
 class RiskConfig:
