@@ -66,23 +66,42 @@ async def main() -> None:
 
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, stop.set)
+    try:
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, stop.set)
+    except NotImplementedError:
+        pass  # Windows: sem add_signal_handler; Ctrl+C vira KeyboardInterrupt
 
     log.info("Sistema no ar com %d agentes. Ctrl+C para desligar.", len(agents))
-    await stop.wait()
+    try:
+        await stop.wait()
+    finally:
+        log.info("Desligamento: cancelando ordens abertas...")
+        for t in tasks:
+            t.cancel()
+        # shield: o cleanup precisa rodar mesmo com a task principal cancelada
+        await asyncio.shield(_cleanup(exchange, config))
+    log.info("Encerrado. Posições abertas seguem protegidas por OCO na exchange.")
 
-    log.info("Desligamento gracioso: cancelando ordens abertas...")
+
+async def _cleanup(exchange: BinanceClient, config: AppConfig) -> None:
     for symbol in config.symbols:
         try:
             await exchange.cancel_all_orders(symbol)
         except Exception as exc:
             log.error("Falha ao cancelar ordens de %s: %s", symbol, exc)
-    for t in tasks:
-        t.cancel()
-    await asyncio.gather(*tasks, return_exceptions=True)
     await exchange.close()
-    log.info("Encerrado. Posições abertas seguem protegidas por OCO na exchange.")
+
+
+async def _emergency_cleanup() -> None:
+    """Plano B do Windows: após Ctrl+C, reconecta só para cancelar ordens."""
+    config = AppConfig.load()
+    exchange = BinanceClient(config.binance_api_key, config.binance_api_secret,
+                             testnet=config.testnet)
+    try:
+        await _cleanup(exchange, config)
+    except Exception as exc:
+        log.error("Limpeza de emergência falhou: %s", exc)
 
 
 async def _daily_roll(state: BotState) -> None:
@@ -99,4 +118,9 @@ async def _daily_roll(state: BotState) -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        log.info("Ctrl+C recebido. Garantindo que não ficaram ordens abertas...")
+        asyncio.run(_emergency_cleanup())
+        log.info("Encerrado com segurança.")
