@@ -32,6 +32,17 @@ CATASTROPHIC_KEYWORDS = (
     "flash crash", "liquidation cascade",
 )
 
+# Termos que provam que a notícia é sobre o MERCADO/infraestrutura cripto —
+# e não sobre um assunto qualquer que só cita bitcoin de passagem (ex.:
+# "resgate em bitcoin" num caso policial). Um evento só é tratado como
+# catastrófico se combinar uma palavra de perigo COM um destes termos.
+CRYPTO_MARKET_TERMS = (
+    "exchange", "binance", "coinbase", "kraken", "okx", "bybit", "bitfinex",
+    "stablecoin", "tether", "usdt", "usdc", "etf", "sec", "cftc",
+    "defi", "protocol", "bridge", "custodian", "custody", "wallet provider",
+    "crypto firm", "crypto exchange", "trading platform", "token", "blockchain",
+)
+
 # Léxico adicional p/ o VADER: vocabulário do mercado cripto que o léxico
 # padrão (redes sociais genéricas) não conhece. Escala VADER: -4..+4.
 CRYPTO_LEXICON = {
@@ -92,7 +103,12 @@ class SentimentAgent(BaseAgent):
         for item in items:
             # 1) Fast-path catastrófico: keyword match antes de qualquer NLP
             lowered = item.headline.lower()
-            if any(k in lowered for k in CATASTROPHIC_KEYWORDS):
+            # Só é catastrófico se houver perigo E relevância de mercado cripto.
+            # Evita alarme falso com notícias que apenas citam "bitcoin"/"hack"
+            # fora do contexto do mercado (ex.: crime político, ransomware geral).
+            has_danger = any(k in lowered for k in CATASTROPHIC_KEYWORDS)
+            is_market_relevant = any(t in lowered for t in CRYPTO_MARKET_TERMS)
+            if has_danger and is_market_relevant:
                 await self.trigger_defensive(item)
 
             # 2) Score: pronto (Fear & Greed) ou via NLP local
