@@ -24,7 +24,7 @@ except ImportError:
 class RiskConfig:
     max_risk_per_trade_pct: float = 1.0      # % do capital arriscado por trade (1-2%)
     max_position_pct: float = 10.0           # exposição máxima por posição
-    max_open_positions: int = 3
+    max_open_positions: int = 4
     max_daily_drawdown_pct: float = 3.0      # circuito diário
     max_weekly_drawdown_pct: float = 8.0     # circuito semanal
     max_consecutive_losses: int = 4
@@ -75,7 +75,8 @@ class ExecutionConfig:
 
 @dataclass
 class AppConfig:
-    symbols: list[str] = field(default_factory=lambda: ["BTC/USDT", "ETH/USDT"])
+    symbols: list[str] = field(
+        default_factory=lambda: ["BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT"])
     initial_equity: float = 10_000.0
     testnet: bool = True                     # SEMPRE começar em testnet
     risk: RiskConfig = field(default_factory=RiskConfig)

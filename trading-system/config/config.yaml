@@ -1,12 +1,14 @@
 # Configuração de estratégia e risco (SEM segredos — segredos vão no .env)
-symbols: ["BTC/USDT", "ETH/USDT"]
+# BTC/ETH: núcleo forte. BNB: bom no backtest. SOL: mais fraco/volátil,
+# entra por diversificação (cada trade limitado a 1% de risco).
+symbols: ["BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT"]
 initial_equity: 10000
 testnet: true            # mude para false SOMENTE após semanas de paper trading
 
 risk:
   max_risk_per_trade_pct: 1.0      # 1% do capital em risco por operação
   max_position_pct: 10.0           # exposição nominal máxima por posição
-  max_open_positions: 3
+  max_open_positions: 4            # uma posição por moeda no máximo
   max_daily_drawdown_pct: 3.0      # circuit breaker diário
   max_weekly_drawdown_pct: 8.0     # circuit breaker semanal
   max_consecutive_losses: 4
