@@ -6,8 +6,10 @@ initial_equity: 10000
 testnet: true            # mude para false SOMENTE após semanas de paper trading
 
 risk:
-  max_risk_per_trade_pct: 1.0      # 1% do capital em risco por operação
-  max_position_pct: 10.0           # exposição nominal máxima por posição
+  max_risk_per_trade_pct: 2.0      # 2% em risco por operação (perfil: proteger
+                                   # capital com teto de ~10% de queda). Backtest
+                                   # 2 anos: ~+18% BTC / +16% ETH, queda máx ~12%.
+  max_position_pct: 15.0           # exposição nominal máxima por posição
   max_open_positions: 4            # uma posição por moeda no máximo
   max_daily_drawdown_pct: 3.0      # circuit breaker diário
   max_weekly_drawdown_pct: 8.0     # circuit breaker semanal

@@ -22,8 +22,8 @@ except ImportError:
 
 @dataclass
 class RiskConfig:
-    max_risk_per_trade_pct: float = 1.0      # % do capital arriscado por trade (1-2%)
-    max_position_pct: float = 10.0           # exposição máxima por posição
+    max_risk_per_trade_pct: float = 2.0      # % do capital arriscado por trade (1-2%)
+    max_position_pct: float = 15.0           # exposição máxima por posição
     max_open_positions: int = 4
     max_daily_drawdown_pct: float = 3.0      # circuito diário
     max_weekly_drawdown_pct: float = 8.0     # circuito semanal
