@@ -33,10 +33,21 @@ VARIATIONS: dict[str, dict] = {
         "mode": "pullback", "trend_days": 50, "min_rr": 2.0},
     "H. Pullback conservador (RSI<40, RR2)": {
         "mode": "pullback", "trend_days": 50, "min_rr": 2.0, "pullback_rsi": 40.0},
-    "I. Pullback + trailing 8%": {
-        "mode": "pullback", "trend_days": 50, "exit_mode": "trail", "trail_pct": 8.0},
-    "J. Pullback + trailing 5%": {
-        "mode": "pullback", "trend_days": 50, "exit_mode": "trail", "trail_pct": 5.0},
+    "I. LONG pullback + trailing 8%": {
+        "mode": "pullback", "trend_days": 50, "exit_mode": "trail", "trail_pct": 8.0,
+        "side": "long"},
+    "J. LONG pullback + trailing 5%": {
+        "mode": "pullback", "trend_days": 50, "exit_mode": "trail", "trail_pct": 5.0,
+        "side": "long"},
+    "K. SÓ SHORT (repique na baixa) + trail 8%": {
+        "mode": "pullback", "trend_days": 50, "exit_mode": "trail", "trail_pct": 8.0,
+        "side": "short"},
+    "L. LONG + SHORT (dois lados) + trail 8%": {
+        "mode": "pullback", "trend_days": 50, "exit_mode": "trail", "trail_pct": 8.0,
+        "side": "both"},
+    "M. LONG + SHORT + trail 5%": {
+        "mode": "pullback", "trend_days": 50, "exit_mode": "trail", "trail_pct": 5.0,
+        "side": "both"},
 }
 
 

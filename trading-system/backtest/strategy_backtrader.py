@@ -39,6 +39,7 @@ class MultiAgentMirrorStrategy(bt.Strategy):
         pullback_rsi=45.0,   # modo pullback: RSI máximo para considerar "recuo"
         exit_mode="bracket", # "bracket" (stop+alvo fixos) | "trail" (stop móvel)
         trail_pct=8.0,       # modo trail: distância % do stop móvel
+        side="long",         # "long" | "short" | "both" (habilita venda a descoberto)
     )
 
     def __init__(self) -> None:
@@ -95,44 +96,68 @@ class MultiAgentMirrorStrategy(bt.Strategy):
         vote = self.quant_vote()
 
         if not self.position:
-            # Filtro 1: tendência do gráfico diário — só compra em mercado de alta
-            if self.daily_sma is not None and price < self.daily_sma[0]:
-                return
-            # Filtro 2: volatilidade extrema — fora do mercado em pânico
+            # Filtro de volatilidade extrema — fora do mercado em pânico
             if self.p.max_atr_pct and (self.atr[0] / price * 100) > self.p.max_atr_pct:
                 return
-            # Sinal de entrada conforme o modo
-            if self.p.mode == "pullback":
-                # Recuo dentro da tendência: RSI respirou E preço voltou à média
-                should_enter = (self.rsi[0] <= self.p.pullback_rsi
-                                and price <= self.bb.lines.mid[0])
-            else:
-                # Filtro 3 (modo votes): exigência de confluência mínima
-                should_enter = vote >= self.p.min_vote
-            if should_enter:
-                if self.p.exit_mode == "trail":
-                    # Saída por stop móvel: risco inicial = trail_pct
-                    stop = price * (1 - self.p.trail_pct / 100)
-                    size = self.position_size(price, stop)
-                    if size > 0:
-                        self.order = self.buy(size=size)
+
+            uptrend = self.daily_sma is None or price >= self.daily_sma[0]
+            downtrend = self.daily_sma is not None and price < self.daily_sma[0]
+
+            # ----- Sinal de COMPRA (long): recuo em tendência de alta -----
+            long_ok = False
+            if self.p.side in ("long", "both") and uptrend:
+                if self.p.mode == "pullback":
+                    long_ok = (self.rsi[0] <= self.p.pullback_rsi
+                               and price <= self.bb.lines.mid[0])
                 else:
-                    stop = price - self.p.atr_stop_mult * self.atr[0]
-                    target = price + self.p.min_rr * (price - stop)
-                    size = self.position_size(price, stop)
-                    if size > 0:
-                        # bracket = entrada + stop + alvo, como o OCO em produção
-                        self.order = self.buy_bracket(
-                            size=size, price=price,
-                            stopprice=stop, limitprice=target,
-                            exectype=bt.Order.Market)[0]
+                    long_ok = vote >= self.p.min_vote
+
+            # ----- Sinal de VENDA a descoberto (short): repique em tendência de baixa -----
+            short_ok = False
+            if self.p.side in ("short", "both") and downtrend and self.p.mode == "pullback":
+                # Espelho do long: RSI esticado p/ cima E preço acima da média
+                short_ok = (self.rsi[0] >= (100 - self.p.pullback_rsi)
+                            and price >= self.bb.lines.mid[0])
+
+            if long_ok:
+                self._enter(price, is_long=True)
+            elif short_ok:
+                self._enter(price, is_long=False)
+
+    def _enter(self, price: float, is_long: bool) -> None:
+        if self.p.exit_mode == "trail":
+            stop = (price * (1 - self.p.trail_pct / 100) if is_long
+                    else price * (1 + self.p.trail_pct / 100))
+            size = self.position_size(price, stop)
+            if size > 0:
+                self.order = self.buy(size=size) if is_long else self.sell(size=size)
+        else:
+            if is_long:
+                stop = price - self.p.atr_stop_mult * self.atr[0]
+                target = price + self.p.min_rr * (price - stop)
+                size = self.position_size(price, stop)
+                if size > 0:
+                    self.order = self.buy_bracket(
+                        size=size, price=price, stopprice=stop,
+                        limitprice=target, exectype=bt.Order.Market)[0]
+            else:
+                stop = price + self.p.atr_stop_mult * self.atr[0]
+                target = price - self.p.min_rr * (stop - price)
+                size = self.position_size(price, stop)
+                if size > 0:
+                    self.order = self.sell_bracket(
+                        size=size, price=price, stopprice=stop,
+                        limitprice=target, exectype=bt.Order.Market)[0]
 
     def notify_order(self, order) -> None:
-        if order.status == order.Completed and order.isbuy() \
-                and self.p.exit_mode == "trail":
-            # Arma o stop móvel logo após o fill da entrada
-            self.sell(size=order.executed.size, exectype=bt.Order.StopTrail,
-                      trailpercent=self.p.trail_pct / 100)
+        if order.status == order.Completed and self.p.exit_mode == "trail":
+            # Arma o stop móvel do lado oposto logo após o fill da entrada
+            if order.isbuy() and self.position.size > 0:      # entrada long
+                self.sell(size=order.executed.size, exectype=bt.Order.StopTrail,
+                          trailpercent=self.p.trail_pct / 100)
+            elif order.issell() and self.position.size < 0:   # entrada short
+                self.buy(size=abs(order.executed.size), exectype=bt.Order.StopTrail,
+                         trailpercent=self.p.trail_pct / 100)
         if order.status in (order.Completed, order.Canceled,
                             order.Margin, order.Rejected):
             self.order = None
