@@ -19,6 +19,8 @@ from __future__ import annotations
 
 import asyncio
 
+import ccxt.async_support as ccxt
+
 from agents.base import BaseAgent
 from core.events import (Direction, ExecutionOrder, ExecutionReport,
                          Notification, Topic)
@@ -117,8 +119,15 @@ class ExecutionAgent(BaseAgent):
         offset = ref_price * cfg.limit_offset_bps / 10_000
         limit_price = (best_bid + offset) if side == "buy" else (best_ask - offset)
 
-        order = await self.ex.create_limit_order(symbol, side, qty, limit_price,
-                                                 post_only=True)
+        try:
+            order = await self.ex.create_limit_order(symbol, side, qty, limit_price,
+                                                     post_only=True)
+        except (ccxt.OrderNotFillable, ccxt.InvalidOrder) as exc:
+            # -5022: a ordem post-only viraria taker e foi recusada. Não é erro
+            # de verdade — devolve None p/ cair no fallback de ordem a mercado.
+            self.log.info("%s: post-only recusada (%s) — usando ordem a mercado",
+                          symbol, getattr(exc, "args", [""])[0][:60] if exc.args else "")
+            return None
         deadline = asyncio.get_event_loop().time() + cfg.limit_timeout_seconds
         while asyncio.get_event_loop().time() < deadline:
             await asyncio.sleep(cfg.order_poll_interval)

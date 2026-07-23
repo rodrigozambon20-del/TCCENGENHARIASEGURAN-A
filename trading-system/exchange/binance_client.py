@@ -107,6 +107,10 @@ class BinanceClient:
         for attempt in range(1, MAX_RETRIES + 1):
             try:
                 return await fn(*args, **kwargs)
+            except ccxt.OrderNotFillable:
+                # Post-only recusada (-5022): esperado, quem chamou trata
+                # (fallback p/ ordem a mercado). Não é erro fatal nem ruído.
+                raise
             except FATAL as exc:
                 # Erro fatal: retentar seria inútil ou perigoso (ordem duplicada)
                 log.error("Erro FATAL em %s: %s — sem retry", fn.__name__, exc)
