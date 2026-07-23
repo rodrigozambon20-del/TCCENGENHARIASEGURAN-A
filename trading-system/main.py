@@ -57,6 +57,31 @@ async def main() -> None:
     bus = EventBus()
     state = BotState(initial_equity=equity or config.initial_equity)
 
+    # Reconciliação: reconhece posições JÁ abertas na exchange para não
+    # abri-las de novo (evita empilhar posição e esgotar margem entre
+    # reinícios). O trailing do Risk Manager assume a gestão delas.
+    if config.market_type == "futures":
+        try:
+            from core.state import Position
+            trail = config.risk.default_trailing_stop_pct
+            for p in await exchange.fetch_open_positions():
+                sym = str(p["symbol"]).split(":")[0]   # "BTC/USDT:USDT" -> "BTC/USDT"
+                side = p.get("side") or "long"
+                qty = abs(float(p.get("contracts") or 0))
+                entry = float(p.get("entryPrice") or 0)
+                if qty <= 0 or entry <= 0:
+                    continue
+                stop = entry * (1 - trail / 100) if side == "long" else entry * (1 + trail / 100)
+                tp = entry * (1 + 2 * trail / 100) if side == "long" else entry * (1 - 2 * trail / 100)
+                state.open_positions[sym] = Position(
+                    symbol=sym, side=side, qty=qty, entry_price=entry,
+                    stop_loss=stop, take_profit=tp, trailing_stop_pct=trail,
+                    highest_price=entry, lowest_price=entry)
+                log.info("Posição existente reconhecida: %s %s %.4f @ %.2f",
+                         sym, side, qty, entry)
+        except Exception as exc:
+            log.warning("Falha na reconciliação de posições (seguindo sem ela): %s", exc)
+
     notifier = Notifier(bus, config)
     agents = [
         RiskAgent(bus, state, config, exchange),        # guardião primeiro

@@ -142,6 +142,21 @@ class BinanceClient:
     async def fetch_order_book(self, symbol: str, depth: int = 20):
         return await self._call(self.exchange.fetch_order_book, symbol, depth)
 
+    async def fetch_open_positions(self) -> list[dict]:
+        """Posições futuras realmente abertas (contratos != 0)."""
+        if self.market_type != "futures":
+            return []
+        positions = await self._call(self.exchange.fetch_positions)
+        return [p for p in positions
+                if abs(float(p.get("contracts") or 0)) > 0]
+
+    async def close_position_market(self, symbol: str, side: str, qty: float):
+        """Fecha uma posição a mercado (reduceOnly)."""
+        close_side = "sell" if side == "long" else "buy"
+        qty = float(self.exchange.amount_to_precision(symbol, qty))
+        return await self._call(self.exchange.create_order, symbol, "market",
+                                close_side, qty, None, {"reduceOnly": True})
+
     async def fetch_last_price(self, symbol: str) -> float:
         ticker = await self._call(self.exchange.fetch_ticker, symbol)
         return float(ticker["last"])
