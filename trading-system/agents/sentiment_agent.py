@@ -38,9 +38,11 @@ CATASTROPHIC_KEYWORDS = (
 # catastrófico se combinar uma palavra de perigo COM um destes termos.
 CRYPTO_MARKET_TERMS = (
     "exchange", "binance", "coinbase", "kraken", "okx", "bybit", "bitfinex",
-    "stablecoin", "tether", "usdt", "usdc", "etf", "sec", "cftc",
-    "defi", "protocol", "bridge", "custodian", "custody", "wallet provider",
-    "crypto firm", "crypto exchange", "trading platform", "token", "blockchain",
+    "stablecoin", "tether", "usdt", "usdc", "etf", "cftc",
+    "defi", "custodian", "custody", "crypto firm", "crypto exchange",
+    "trading platform", "regulator", "regulatory",
+    # Removidos por serem amplos demais e causar alarme falso:
+    # "token", "blockchain", "protocol", "bridge", "sec" (casa com "seconds").
 )
 
 # Léxico adicional p/ o VADER: vocabulário do mercado cripto que o léxico
