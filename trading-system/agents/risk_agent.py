@@ -41,6 +41,7 @@ class RiskAgent(BaseAgent):
                                    Topic.DEFENSIVE_MODE)
         asyncio.create_task(self.drawdown_watchdog())
         asyncio.create_task(self.trailing_stop_loop())
+        asyncio.create_task(self.position_close_monitor())
 
         async for topic, event in self.bus.stream(inbox):
             if topic == Topic.TRADE_PROPOSAL:
@@ -149,16 +150,50 @@ class RiskAgent(BaseAgent):
         positions = (", ".join(f"{sym} {p.side} @ {p.entry_price:.2f}"
                                for sym, p in s.open_positions.items())
                      or "nenhuma")
+        # Placar fica só no console (não vai ao Telegram — lá só resultado
+        # de trade, conforme pedido do usuário).
         self.log.info(
             "%s PLACAR | Saldo: %.2f USDT | Resultado do dia: %+.2f USDT (%+.2f%%) "
             "| Posições abertas: %s | Trades hoje: %d",
             emoji, s.equity, pnl_day, pnl_pct, positions, s.trades_today)
+
+    async def position_close_monitor(self) -> None:
+        """Detecta quando uma posição fecha na exchange (stop/alvo/trailing)
+        e envia ao Telegram SÓ o essencial: ganhou/perdeu, quanto e em qual
+        moeda."""
+        if self.md.market_type != "futures":
+            return  # (spot fecha via on_execution_report)
+        while True:
+            try:
+                open_syms = {str(p["symbol"]).split(":")[0]
+                             for p in await self.md.fetch_open_positions()}
+                for sym, pos in list(self.state.open_positions.items()):
+                    if sym not in open_syms:
+                        await self.on_position_closed(sym, pos)
+            except Exception as exc:
+                self.log.warning("Monitor de fechamento: %s", exc)
+            await asyncio.sleep(12)
+
+    async def on_position_closed(self, sym: str, pos) -> None:
+        try:
+            exit_price = await self.md.fetch_last_price(sym)
+        except Exception:
+            exit_price = pos.stop_loss
+        pnl = (exit_price - pos.entry_price) * pos.qty
+        if pos.side == "short":
+            pnl = -pnl
+        win = pnl >= 0
+        self.state.consecutive_losses = 0 if win else self.state.consecutive_losses + 1
+        self.state.open_positions.pop(sym, None)
+        emoji = "🟢" if win else "🔴"
+        verb = "GANHEI" if win else "PERDI"
+        self.log.info("%s POSIÇÃO FECHADA %s: %+.2f USDT", emoji, sym, pnl)
+        # Mensagem enxuta para o Telegram
         await self.emit(Topic.NOTIFICATION, Notification(
-            level="info", title=f"{emoji} Placar do bot",
-            body=(f"Saldo: {s.equity:,.2f} USDT\n"
-                  f"Resultado do dia: {pnl_day:+,.2f} USDT ({pnl_pct:+.2f}%)\n"
-                  f"Posições abertas: {positions}\n"
-                  f"Trades hoje: {s.trades_today}")))
+            level="info", to_telegram=True,
+            title=f"{emoji} {verb} {abs(pnl):.2f} USDT",
+            body=f"{sym} ({'compra' if pos.side == 'long' else 'venda'}) — "
+                 f"resultado {pnl:+.2f} USDT"))
 
     async def drawdown_watchdog(self) -> None:
         """Vigia independente: mesmo sem novas propostas, o drawdown é checado."""

@@ -141,4 +141,5 @@ class Notification(BaseEvent):
     level: str = "info"           # info | warning | critical
     title: str = ""
     body: str = ""
+    to_telegram: bool = False     # True = enviar ao Telegram (resultado de trade)
     payload: dict = field(default_factory=dict)

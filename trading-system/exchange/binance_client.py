@@ -227,17 +227,17 @@ class BinanceClient:
         sl = float(self.exchange.price_to_precision(symbol, pos.stop_loss))
 
         if self.market_type == "futures":
-            # Cancela proteções antigas desta moeda antes de recriar — evita
-            # acúmulo de stops (-4045 "Reach max stop order limit").
+            # Cancela proteções antigas desta moeda antes de recriar.
             await self.cancel_all_orders(symbol)
-            # Stop de perda: fecha a posição a mercado no gatilho
+            # closePosition=True: a Binance permite só UM stop e UM alvo por
+            # posição (fecham 100% dela no gatilho). Impossível acumular
+            # (-4045) e o tamanho acompanha a posição automaticamente.
             await self._call(self.exchange.create_order, symbol, "STOP_MARKET",
-                             side, qty, None,
-                             {"stopPrice": sl, "reduceOnly": True})
-            # Alvo de lucro: idem, do outro lado
+                             side, None, None,
+                             {"stopPrice": sl, "closePosition": True})
             return await self._call(self.exchange.create_order, symbol,
-                                    "TAKE_PROFIT_MARKET", side, qty, None,
-                                    {"stopPrice": tp, "reduceOnly": True})
+                                    "TAKE_PROFIT_MARKET", side, None, None,
+                                    {"stopPrice": tp, "closePosition": True})
 
         # spot: OCO stop-limit ligeiramente dentro do gatilho p/ garantir fill
         sl_limit = float(self.exchange.price_to_precision(

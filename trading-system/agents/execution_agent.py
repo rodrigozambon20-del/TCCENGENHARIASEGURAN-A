@@ -95,7 +95,13 @@ class ExecutionAgent(BaseAgent):
                            highest_price=report.fill_price,
                            lowest_price=report.fill_price)
             self.state.open_positions[p.symbol] = pos
-            await self.ex.place_protective_orders(p.symbol, pos)
+            # A proteção NÃO pode derrubar a execução: se falhar, a posição
+            # segue registrada e o trailing do Risk Manager tenta rearmá-la.
+            try:
+                await self.ex.place_protective_orders(p.symbol, pos)
+            except Exception as exc:
+                self.log.warning("%s: proteção não armada agora (%s) — trailing "
+                                 "tentará de novo", p.symbol, str(exc)[:80])
 
             self.log.info("EXECUTADO %s %s %.6f @ %.2f (slippage %.1f bps)",
                           side, p.symbol, report.filled_qty, report.fill_price,

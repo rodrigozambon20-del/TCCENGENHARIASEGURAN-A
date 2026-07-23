@@ -62,12 +62,19 @@ class Notifier:
 
         async for topic, event in self.bus.stream(inbox):
             if topic == Topic.NOTIFICATION:
-                self._enqueue(self._from_notification(event))
+                payload = self._from_notification(event)
+                # Telegram: só resultado de trade (to_telegram) ou crítico.
+                payload["_telegram"] = bool(getattr(event, "to_telegram", False)
+                                            or event.level == "critical")
+                self._enqueue(payload)
             elif topic == Topic.EXECUTION_REPORT:
-                self._enqueue(self._from_execution(event))
+                payload = self._from_execution(event)
+                payload["_telegram"] = False   # entradas não vão ao Telegram
+                self._enqueue(payload)
             elif topic == Topic.KILL_SWITCH:
                 self._enqueue({"level": "critical", "title": "🛑 KILL SWITCH",
-                               "body": event.reason, "source": event.source})
+                               "body": event.reason, "source": event.source,
+                               "_telegram": True})
 
     def _enqueue(self, payload: dict) -> None:
         try:
@@ -84,7 +91,9 @@ class Notifier:
         async with aiohttp.ClientSession(timeout=timeout) as session:
             while True:
                 payload = await self.outbox.get()
-                if self.telegram_enabled:
+                # Telegram só recebe o que estiver marcado (resultado de trade
+                # / crítico). O n8n, se configurado, recebe tudo.
+                if self.telegram_enabled and payload.get("_telegram"):
                     await self._post_retry(session, self._telegram_request(payload))
                 if self.webhook_url:
                     await self._post_retry(session,
