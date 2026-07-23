@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 
 import ccxt.async_support as ccxt
 
@@ -59,11 +60,17 @@ class BinanceClient:
         })
         if testnet:
             if market_type == "futures":
-                # ccxt descontinuou set_sandbox_mode p/ futuros: apontamos as
-                # URLs da testnet de futuros (testnet.binancefuture.com) à mão.
+                # A "Demo Trading" nova da Binance (onde a chave é criada em
+                # demo.binance.com) usa o host demo-fapi.binance.com — NÃO o
+                # antigo testnet.binancefuture.com. ccxt descontinuou o sandbox
+                # de futuros, então montamos as URLs de futuros à mão.
+                demo_host = os.environ.get("BINANCE_FUTURES_DEMO_HOST",
+                                           "https://demo-fapi.binance.com")
                 for k, v in self.exchange.urls.get("test", {}).items():
-                    if k.startswith(("fapi", "dapi")):
-                        self.exchange.urls["api"][k] = v
+                    if k.startswith("fapi"):
+                        # preserva o sufixo /fapi/vN, troca só o host
+                        suffix = v.split("testnet.binancefuture.com", 1)[-1]
+                        self.exchange.urls["api"][k] = demo_host + suffix
                 # fetch_currencies usa um endpoint spot de produção que a
                 # testnet de futuros não tem — desativa (não é usado no trade).
                 self.exchange.has["fetchCurrencies"] = False
