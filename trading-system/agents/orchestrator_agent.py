@@ -93,10 +93,15 @@ class OrchestratorAgent(BaseAgent):
         price = quant.last_price
         if quant.strategy == "pullback":
             # Estratégia vencedora do backtest: risco inicial = trailing %,
-            # saída real fica por conta do stop móvel do Risk Manager
+            # saída real fica por conta do stop móvel do Risk Manager.
+            # Stops espelhados conforme o lado (compra ou venda a descoberto).
             trail = self.config.risk.default_trailing_stop_pct
-            stop = price * (1 - trail / 100)
-            target = price * (1 + 2 * trail / 100)   # R:R formal de 2:1
+            if quant.direction == Direction.LONG:
+                stop = price * (1 - trail / 100)
+                target = price * (1 + 2 * trail / 100)   # R:R formal de 2:1
+            else:  # SHORT: stop acima, alvo abaixo
+                stop = price * (1 + trail / 100)
+                target = price * (1 - 2 * trail / 100)
         elif quant.direction == Direction.LONG:
             # Modo votes: stop = 1.5x ATR; alvo no S/R na direção do trade
             atr = quant.atr or price * 0.01

@@ -38,6 +38,7 @@ class QuantConfig:
     # "pullback" = recuo na tendência (vencedora do backtest 2024-2026);
     # "votes" = confluência multi-indicador original
     mode: str = "pullback"
+    side: str = "long"                # "long" | "short" | "both" (both/short exige futures)
     trend_sma_days: int = 50          # pullback: só compra acima da SMA(n) diária
     pullback_rsi: float = 45.0        # pullback: RSI 1h máximo p/ considerar recuo
     timeframes: list[str] = field(default_factory=lambda: ["1m", "5m", "15m", "1h", "1d"])
@@ -79,6 +80,8 @@ class AppConfig:
         default_factory=lambda: ["BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT"])
     initial_equity: float = 10_000.0
     testnet: bool = True                     # SEMPRE começar em testnet
+    market_type: str = "spot"                # "spot" | "futures"
+    leverage: int = 1                        # só usado em futures (2-3 recomendado)
     risk: RiskConfig = field(default_factory=RiskConfig)
     quant: QuantConfig = field(default_factory=QuantConfig)
     sentiment: SentimentConfig = field(default_factory=SentimentConfig)
@@ -99,6 +102,8 @@ class AppConfig:
             cfg.symbols = raw.get("symbols", cfg.symbols)
             cfg.initial_equity = raw.get("initial_equity", cfg.initial_equity)
             cfg.testnet = raw.get("testnet", cfg.testnet)
+            cfg.market_type = raw.get("market_type", cfg.market_type)
+            cfg.leverage = raw.get("leverage", cfg.leverage)
             for section, target in (("risk", cfg.risk), ("quant", cfg.quant),
                                     ("sentiment", cfg.sentiment), ("execution", cfg.execution)):
                 for k, v in (raw.get(section) or {}).items():

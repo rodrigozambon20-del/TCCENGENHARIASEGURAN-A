@@ -38,20 +38,42 @@ BASE_BACKOFF = 2.0  # 2s, 4s, 8s, 16s
 
 class BinanceClient:
     def __init__(self, api_key: str, api_secret: str, testnet: bool = True,
-                 quote_currency: str = "USDT") -> None:
+                 quote_currency: str = "USDT", market_type: str = "spot",
+                 leverage: int = 1) -> None:
         self.quote = quote_currency
+        self.market_type = market_type       # "spot" | "futures"
+        self.leverage = leverage
+        default_type = "future" if market_type == "futures" else "spot"
         self.exchange = ccxt.binance({
             "apiKey": api_key,
             "secret": api_secret,
             "enableRateLimit": True,          # throttle automático do ccxt
             "options": {
-                "defaultType": "spot",
+                "defaultType": default_type,
                 "adjustForTimeDifference": True,  # evita erro -1021 (timestamp)
             },
         })
         if testnet:
             self.exchange.set_sandbox_mode(True)
             log.warning("MODO TESTNET ATIVO — nenhuma ordem real será enviada")
+        log.warning("Mercado: %s%s", market_type.upper(),
+                    f" | alavancagem {leverage}x" if market_type == "futures" else "")
+
+    async def setup_futures(self, symbols: list[str]) -> None:
+        """Configura alavancagem e margem ISOLADA (mais segura) por símbolo."""
+        if self.market_type != "futures":
+            return
+        for symbol in symbols:
+            try:
+                await self._call(self.exchange.set_margin_mode, "isolated", symbol)
+            except Exception as exc:
+                log.info("Margem isolada %s: %s (pode já estar configurada)",
+                         symbol, exc)
+            try:
+                await self._call(self.exchange.set_leverage, self.leverage, symbol)
+                log.info("%s: alavancagem %dx, margem isolada", symbol, self.leverage)
+            except Exception as exc:
+                log.warning("Falha ao configurar alavancagem de %s: %s", symbol, exc)
 
     async def close(self) -> None:
         await self.exchange.close()
@@ -148,21 +170,32 @@ class BinanceClient:
     # ------------------------------------------------------------------ #
     async def place_protective_orders(self, symbol: str, pos: Position):
         """
-        Ordem OCO (One-Cancels-the-Other) no spot da Binance: stop-limit +
-        limite de take profit. Se uma executa, a outra cancela sozinha.
-        A proteção vive NA EXCHANGE — sobrevive a quedas do bot.
+        Proteção NA EXCHANGE (sobrevive a quedas do bot):
+        - spot: ordem OCO (stop-limit + take-profit) que se auto-cancela;
+        - futures: STOP_MARKET + TAKE_PROFIT_MARKET reduce-only (fecham a
+          posição no gatilho, cada um cobrindo um lado).
         """
         side = "sell" if pos.side == "long" else "buy"
         qty = float(self.exchange.amount_to_precision(symbol, pos.qty))
         tp = float(self.exchange.price_to_precision(symbol, pos.take_profit))
         sl = float(self.exchange.price_to_precision(symbol, pos.stop_loss))
-        # Stop-limit ligeiramente abaixo/acima do gatilho para garantir fill
+
+        if self.market_type == "futures":
+            # Stop de perda: fecha a posição a mercado no gatilho
+            await self._call(self.exchange.create_order, symbol, "STOP_MARKET",
+                             side, qty, None,
+                             {"stopPrice": sl, "reduceOnly": True})
+            # Alvo de lucro: idem, do outro lado
+            return await self._call(self.exchange.create_order, symbol,
+                                    "TAKE_PROFIT_MARKET", side, qty, None,
+                                    {"stopPrice": tp, "reduceOnly": True})
+
+        # spot: OCO stop-limit ligeiramente dentro do gatilho p/ garantir fill
         sl_limit = float(self.exchange.price_to_precision(
             symbol, sl * (0.998 if side == "sell" else 1.002)))
         return await self._call(
             self.exchange.create_order, symbol, "limit", side, qty, tp,
-            {"stopPrice": sl, "stopLimitPrice": sl_limit,
-             "type": "oco"})  # ccxt unified OCO p/ Binance spot
+            {"stopPrice": sl, "stopLimitPrice": sl_limit, "type": "oco"})
 
     async def replace_stop_order(self, symbol: str, pos: Position):
         """Trailing stop: cancela a proteção antiga e recria com stop novo."""

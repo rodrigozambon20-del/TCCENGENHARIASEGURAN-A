@@ -94,19 +94,36 @@ class QuantAgent(BaseAgent):
             rsi_1h = self.rsi(hourly, cfg.rsi_period)
             bb_mid_1h = float(hourly[-cfg.bollinger_period:].mean())
 
+            side = cfg.side
             uptrend = price > sma_daily
-            in_pullback = rsi_1h <= cfg.pullback_rsi and price <= bb_mid_1h
-            if not (uptrend and in_pullback):
-                return None
-            self.log.info("%s: PULLBACK detectado (preço %.2f > SMA%dd %.2f, "
-                          "RSI1h %.1f, abaixo da média BB)", symbol, price,
-                          cfg.trend_sma_days, sma_daily, rsi_1h)
-            return QuantSignal(
-                symbol=symbol, direction=Direction.LONG, strategy="pullback",
-                score=0.8, timeframe_votes=votes, support=support,
-                resistance=resistance, atr=atr_1h, last_price=price,
-                orderflow_imbalance=float(imbalance),
-            )
+            downtrend = price < sma_daily
+
+            # LONG: recuo (pullback) dentro de tendência de ALTA
+            long_ok = (side in ("long", "both") and uptrend
+                       and rsi_1h <= cfg.pullback_rsi and price <= bb_mid_1h)
+            # SHORT: repique (bounce) dentro de tendência de BAIXA (espelho)
+            short_ok = (side in ("short", "both") and downtrend
+                        and rsi_1h >= (100 - cfg.pullback_rsi) and price >= bb_mid_1h)
+
+            if long_ok:
+                self.log.info("%s: PULLBACK de COMPRA (preço %.2f > SMA%dd %.2f, "
+                              "RSI1h %.1f)", symbol, price, cfg.trend_sma_days,
+                              sma_daily, rsi_1h)
+                return QuantSignal(
+                    symbol=symbol, direction=Direction.LONG, strategy="pullback",
+                    score=0.8, timeframe_votes=votes, support=support,
+                    resistance=resistance, atr=atr_1h, last_price=price,
+                    orderflow_imbalance=float(imbalance))
+            if short_ok:
+                self.log.info("%s: REPIQUE de VENDA (preço %.2f < SMA%dd %.2f, "
+                              "RSI1h %.1f)", symbol, price, cfg.trend_sma_days,
+                              sma_daily, rsi_1h)
+                return QuantSignal(
+                    symbol=symbol, direction=Direction.SHORT, strategy="pullback",
+                    score=-0.8, timeframe_votes=votes, support=support,
+                    resistance=resistance, atr=atr_1h, last_price=price,
+                    orderflow_imbalance=float(imbalance))
+            return None
 
         # Modo VOTES (original): média ponderada dos timeframes + order flow
         total_w = sum(cfg.timeframe_weights.get(tf, 0.1) for tf in votes)

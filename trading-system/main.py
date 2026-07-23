@@ -37,16 +37,22 @@ log = logging.getLogger("main")
 
 
 async def main() -> None:
-    config = AppConfig.load()
+    import sys
+    # Permite escolher o arquivo de config: python main.py [config/config.futures.yaml]
+    config_path = sys.argv[1] if len(sys.argv) > 1 else "config/config.yaml"
+    config = AppConfig.load(config_path)
     if not config.binance_api_key or not config.binance_api_secret:
         raise SystemExit("Defina BINANCE_API_KEY e BINANCE_API_SECRET no ambiente (.env)")
 
     exchange = BinanceClient(config.binance_api_key, config.binance_api_secret,
-                             testnet=config.testnet)
+                             testnet=config.testnet, market_type=config.market_type,
+                             leverage=config.leverage)
+    await exchange.setup_futures(config.symbols)   # no-op no spot
     # Fail-fast: valida credenciais e conectividade antes de qualquer agente
     equity = await exchange.fetch_total_equity()
-    log.info("Conectado à Binance (%s). Equity inicial: %.2f USDT",
-             "TESTNET" if config.testnet else "PRODUÇÃO", equity or 0.0)
+    log.info("Conectado à Binance (%s | %s). Equity inicial: %.2f USDT",
+             "TESTNET" if config.testnet else "PRODUÇÃO",
+             config.market_type.upper(), equity or 0.0)
 
     bus = EventBus()
     state = BotState(initial_equity=equity or config.initial_equity)
@@ -95,9 +101,11 @@ async def _cleanup(exchange: BinanceClient, config: AppConfig) -> None:
 
 async def _emergency_cleanup() -> None:
     """Plano B do Windows: após Ctrl+C, reconecta só para cancelar ordens."""
-    config = AppConfig.load()
+    import sys
+    config = AppConfig.load(sys.argv[1] if len(sys.argv) > 1 else "config/config.yaml")
     exchange = BinanceClient(config.binance_api_key, config.binance_api_secret,
-                             testnet=config.testnet)
+                             testnet=config.testnet, market_type=config.market_type,
+                             leverage=config.leverage)
     try:
         await _cleanup(exchange, config)
     except Exception as exc:

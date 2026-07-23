@@ -1,0 +1,39 @@
+# ============================================================================
+#  CONFIGURAÇÃO DE FUTUROS — LONG + SHORT (lucra na alta E na queda)
+#  Roda em PARALELO ao spot, em conta de FUTUROS testnet separada.
+#  Alavancagem BAIXA e margem ISOLADA: risco controlado, sem 20x suicida.
+# ============================================================================
+symbols: ["BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT"]
+initial_equity: 10000
+testnet: true            # SEMPRE testnet primeiro
+market_type: futures     # ativa o mercado de futuros
+leverage: 3              # 3x — moderado (backtest: acima de ~10x começa a liquidar)
+
+risk:
+  max_risk_per_trade_pct: 2.0      # 2% em risco por operação
+  max_position_pct: 20.0           # exposição nominal maior (alavancado)
+  max_open_positions: 4
+  max_daily_drawdown_pct: 4.0      # trava diária um pouco mais folgada p/ futuros
+  max_weekly_drawdown_pct: 10.0    # respeita seu teto de ~10%
+  max_consecutive_losses: 4
+  max_trades_per_day: 12
+  default_trailing_stop_pct: 8.0
+  min_risk_reward_ratio: 1.5
+
+quant:
+  mode: "pullback"
+  side: "both"                     # LONG na alta + SHORT na baixa
+  trend_sma_days: 50
+  pullback_rsi: 45.0
+  timeframes: ["1m", "5m", "15m", "1h", "1d"]
+
+sentiment:
+  poll_interval_seconds: 60
+  catastrophic_score_threshold: -0.75
+  catastrophic_confidence_threshold: 0.6
+
+execution:
+  prefer_limit_orders: true
+  limit_offset_bps: 2.0
+  limit_timeout_seconds: 20
+  max_slippage_bps: 15.0
