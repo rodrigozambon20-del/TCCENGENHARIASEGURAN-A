@@ -63,18 +63,18 @@ class Notifier:
         async for topic, event in self.bus.stream(inbox):
             if topic == Topic.NOTIFICATION:
                 payload = self._from_notification(event)
-                # Telegram: só resultado de trade (to_telegram) ou crítico.
-                payload["_telegram"] = bool(getattr(event, "to_telegram", False)
-                                            or event.level == "critical")
+                # Telegram: SÓ o que estiver marcado (placar/resultado de
+                # ordem). Alertas críticos NÃO vão ao Telegram (a pedido).
+                payload["_telegram"] = bool(getattr(event, "to_telegram", False))
                 self._enqueue(payload)
             elif topic == Topic.EXECUTION_REPORT:
                 payload = self._from_execution(event)
-                payload["_telegram"] = False   # entradas não vão ao Telegram
+                payload["_telegram"] = False   # entradas cruas não vão ao Telegram
                 self._enqueue(payload)
             elif topic == Topic.KILL_SWITCH:
                 self._enqueue({"level": "critical", "title": "🛑 KILL SWITCH",
                                "body": event.reason, "source": event.source,
-                               "_telegram": True})
+                               "_telegram": False})
 
     def _enqueue(self, payload: dict) -> None:
         try:

@@ -141,8 +141,8 @@ class RiskAgent(BaseAgent):
 
     STATUS_REPORT_EVERY = 60  # ciclos de 30s => placar a cada 30 min
 
-    async def report_status(self) -> None:
-        """Placar: saldo, resultado do dia e posições — no log e no Telegram."""
+    def _placar(self) -> tuple[str, str]:
+        """Monta (emoji, texto) do placar: saldo, resultado do dia, posições."""
         s = self.state
         pnl_day = s.equity - s.day_start_equity
         pnl_pct = (pnl_day / s.day_start_equity * 100) if s.day_start_equity else 0.0
@@ -150,12 +150,22 @@ class RiskAgent(BaseAgent):
         positions = (", ".join(f"{sym} {p.side} @ {p.entry_price:.2f}"
                                for sym, p in s.open_positions.items())
                      or "nenhuma")
-        # Placar fica só no console (não vai ao Telegram — lá só resultado
-        # de trade, conforme pedido do usuário).
-        self.log.info(
-            "%s PLACAR | Saldo: %.2f USDT | Resultado do dia: %+.2f USDT (%+.2f%%) "
-            "| Posições abertas: %s | Trades hoje: %d",
-            emoji, s.equity, pnl_day, pnl_pct, positions, s.trades_today)
+        text = (f"Saldo: {s.equity:,.2f} USDT\n"
+                f"Resultado do dia: {pnl_day:+,.2f} USDT ({pnl_pct:+.2f}%)\n"
+                f"Posições abertas: {positions}\n"
+                f"Trades hoje: {s.trades_today}")
+        return emoji, text
+
+    async def send_placar(self, header: str | None = None) -> None:
+        """Envia o placar ao Telegram (e loga no console)."""
+        emoji, text = self._placar()
+        self.log.info("%s PLACAR | %s", emoji, text.replace("\n", " | "))
+        await self.emit(Topic.NOTIFICATION, Notification(
+            level="info", to_telegram=True,
+            title=header or f"{emoji} Placar do bot", body=text))
+
+    async def report_status(self) -> None:
+        await self.send_placar()
 
     async def position_close_monitor(self) -> None:
         """Detecta quando uma posição fecha na exchange (stop/alvo/trailing)
@@ -188,12 +198,10 @@ class RiskAgent(BaseAgent):
         emoji = "🟢" if win else "🔴"
         verb = "GANHEI" if win else "PERDI"
         self.log.info("%s POSIÇÃO FECHADA %s: %+.2f USDT", emoji, sym, pnl)
-        # Mensagem enxuta para o Telegram
-        await self.emit(Topic.NOTIFICATION, Notification(
-            level="info", to_telegram=True,
-            title=f"{emoji} {verb} {abs(pnl):.2f} USDT",
-            body=f"{sym} ({'compra' if pos.side == 'long' else 'venda'}) — "
-                 f"resultado {pnl:+.2f} USDT"))
+        # Placar com o resultado da ordem no cabeçalho (fechamento é "ordem")
+        moeda = "compra" if pos.side == "long" else "venda"
+        await self.send_placar(
+            header=f"{emoji} {verb} {abs(pnl):.2f} USDT em {sym} ({moeda})")
 
     async def drawdown_watchdog(self) -> None:
         """Vigia independente: mesmo sem novas propostas, o drawdown é checado."""
@@ -253,15 +261,19 @@ class RiskAgent(BaseAgent):
         if report.status != "filled":
             return
         self.state.trades_today += 1
-        # PnL realizado quando um fechamento ocorre é contabilizado pelo
-        # watchdog via equity real da conta; aqui só rastreamos disciplina.
-        if report.symbol in self.state.open_positions and report.side in ("sell", "buy"):
-            pos = self.state.open_positions.get(report.symbol)
-            if pos and ((pos.side == "long" and report.side == "sell") or
-                        (pos.side == "short" and report.side == "buy")):
-                pnl = (report.fill_price - pos.entry_price) * report.filled_qty
-                if pos.side == "short":
-                    pnl = -pnl
-                self.state.consecutive_losses = (self.state.consecutive_losses + 1
-                                                 if pnl < 0 else 0)
-                del self.state.open_positions[report.symbol]
+        pos = self.state.open_positions.get(report.symbol)
+        is_close = pos and ((pos.side == "long" and report.side == "sell") or
+                            (pos.side == "short" and report.side == "buy"))
+        if is_close:
+            pnl = (report.fill_price - pos.entry_price) * report.filled_qty
+            if pos.side == "short":
+                pnl = -pnl
+            self.state.consecutive_losses = (self.state.consecutive_losses + 1
+                                             if pnl < 0 else 0)
+            del self.state.open_positions[report.symbol]
+        else:
+            # Entrada (abertura): manda o placar após a ordem.
+            side = "compra" if report.side == "buy" else "venda"
+            await self.send_placar(
+                header=f"📥 Ordem de {side} em {report.symbol} @ "
+                       f"{report.fill_price:.2f}")
