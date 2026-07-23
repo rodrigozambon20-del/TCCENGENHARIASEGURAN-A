@@ -44,17 +44,31 @@ class BinanceClient:
         self.market_type = market_type       # "spot" | "futures"
         self.leverage = leverage
         default_type = "future" if market_type == "futures" else "spot"
+        options = {
+            "defaultType": default_type,
+            "adjustForTimeDifference": True,  # evita erro -1021 (timestamp)
+        }
+        if market_type == "futures":
+            # Carrega só os mercados USDT-M — boot mais rápido, menos falhas
+            options["fetchMarkets"] = ["linear"]
         self.exchange = ccxt.binance({
             "apiKey": api_key,
             "secret": api_secret,
             "enableRateLimit": True,          # throttle automático do ccxt
-            "options": {
-                "defaultType": default_type,
-                "adjustForTimeDifference": True,  # evita erro -1021 (timestamp)
-            },
+            "options": options,
         })
         if testnet:
-            self.exchange.set_sandbox_mode(True)
+            if market_type == "futures":
+                # ccxt descontinuou set_sandbox_mode p/ futuros: apontamos as
+                # URLs da testnet de futuros (testnet.binancefuture.com) à mão.
+                for k, v in self.exchange.urls.get("test", {}).items():
+                    if k.startswith(("fapi", "dapi")):
+                        self.exchange.urls["api"][k] = v
+                # fetch_currencies usa um endpoint spot de produção que a
+                # testnet de futuros não tem — desativa (não é usado no trade).
+                self.exchange.has["fetchCurrencies"] = False
+            else:
+                self.exchange.set_sandbox_mode(True)
             log.warning("MODO TESTNET ATIVO — nenhuma ordem real será enviada")
         log.warning("Mercado: %s%s", market_type.upper(),
                     f" | alavancagem {leverage}x" if market_type == "futures" else "")
