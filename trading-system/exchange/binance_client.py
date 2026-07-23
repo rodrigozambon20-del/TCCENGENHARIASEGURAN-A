@@ -95,6 +95,12 @@ class BinanceClient:
                 log.info("%s: alavancagem %dx, margem isolada", symbol, self.leverage)
             except Exception as exc:
                 log.warning("Falha ao configurar alavancagem de %s: %s", symbol, exc)
+            # Limpa ordens órfãs de execuções anteriores (evita -4045 "max stop
+            # order limit" por acúmulo de stops entre reinícios).
+            try:
+                await self.cancel_all_orders(symbol)
+            except Exception as exc:
+                log.info("Limpeza de ordens de %s: %s", symbol, exc)
 
     async def close(self) -> None:
         await self.exchange.close()
@@ -206,6 +212,9 @@ class BinanceClient:
         sl = float(self.exchange.price_to_precision(symbol, pos.stop_loss))
 
         if self.market_type == "futures":
+            # Cancela proteções antigas desta moeda antes de recriar — evita
+            # acúmulo de stops (-4045 "Reach max stop order limit").
+            await self.cancel_all_orders(symbol)
             # Stop de perda: fecha a posição a mercado no gatilho
             await self._call(self.exchange.create_order, symbol, "STOP_MARKET",
                              side, qty, None,
