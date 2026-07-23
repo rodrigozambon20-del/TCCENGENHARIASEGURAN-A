@@ -96,6 +96,16 @@ class AppConfig:
     @classmethod
     def load(cls, path: str | Path = "config/config.yaml") -> "AppConfig":
         cfg = cls()
+        # Carrega o arquivo de ambiente certo diretamente: .env.futures para
+        # a config de futuros, .env para o spot. Robusto e independente de
+        # como o processo foi iniciado (não depende do .bat injetar variáveis).
+        try:
+            from dotenv import load_dotenv
+            env_file = ".env.futures" if "futures" in str(path) else ".env"
+            if Path(env_file).exists():
+                load_dotenv(env_file, override=True)
+        except ImportError:
+            pass
         p = Path(path)
         if p.exists():
             raw = yaml.safe_load(p.read_text()) or {}
