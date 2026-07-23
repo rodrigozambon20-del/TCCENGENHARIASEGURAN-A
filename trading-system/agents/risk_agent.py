@@ -229,6 +229,10 @@ class RiskAgent(BaseAgent):
     # ------------------------------------------------------------------ #
     # Trailing stop (stop móvel) — nunca afrouxa, só aperta              #
     # ------------------------------------------------------------------ #
+    # Só recria o stop na exchange se ele melhorar mais que isto (evita
+    # recriar ordem a cada tick — principal fonte de acúmulo de -4045).
+    TRAIL_MIN_STEP = 0.004  # 0,4%
+
     async def trailing_stop_loop(self) -> None:
         while True:
             for symbol, pos in list(self.state.open_positions.items()):
@@ -239,7 +243,7 @@ class RiskAgent(BaseAgent):
                     if pos.side == "long":
                         pos.highest_price = max(pos.highest_price, price)
                         candidate = pos.highest_price * (1 - pos.trailing_stop_pct / 100)
-                        if candidate > pos.stop_loss:
+                        if candidate > pos.stop_loss * (1 + self.TRAIL_MIN_STEP):
                             self.log.info("%s trailing stop: %.2f -> %.2f",
                                           symbol, pos.stop_loss, candidate)
                             pos.stop_loss = candidate
@@ -247,12 +251,12 @@ class RiskAgent(BaseAgent):
                     else:
                         pos.lowest_price = min(pos.lowest_price, price)
                         candidate = pos.lowest_price * (1 + pos.trailing_stop_pct / 100)
-                        if candidate < pos.stop_loss:
+                        if candidate < pos.stop_loss * (1 - self.TRAIL_MIN_STEP):
                             pos.stop_loss = candidate
                             await self.md.replace_stop_order(symbol, pos)
                 except Exception as exc:
                     self.log.warning("Trailing de %s falhou: %s", symbol, exc)
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
 
     # ------------------------------------------------------------------ #
     # Contabilidade pós-execução                                         #

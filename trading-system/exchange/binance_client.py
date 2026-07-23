@@ -206,10 +206,25 @@ class BinanceClient:
             return None  # já preenchida/cancelada — ok
 
     async def cancel_all_orders(self, symbol: str):
+        # 1) cancelamento em massa (rápido)
         try:
-            return await self._call(self.exchange.cancel_all_orders, symbol)
+            await self._call(self.exchange.cancel_all_orders, symbol)
         except (ccxt.InvalidOrder, ccxt.OrderNotFound):
-            return None  # Binance -2011: não havia ordens abertas — nada a fazer
+            pass  # -2011: não havia ordens — ok
+        # 2) varredura: cancela uma a uma as que sobraram. Na testnet de
+        # futuros o cancelamento em massa às vezes NÃO limpa as ordens
+        # condicionais (STOP/TP) — daí o acúmulo (-4045). Aqui garantimos.
+        if self.market_type == "futures":
+            try:
+                remaining = await self._call(self.exchange.fetch_open_orders, symbol)
+                for o in remaining:
+                    try:
+                        await self._call(self.exchange.cancel_order, o["id"], symbol)
+                    except Exception:
+                        pass
+            except Exception as exc:
+                log.info("Varredura de ordens de %s: %s", symbol, exc)
+        return None
 
     # ------------------------------------------------------------------ #
     # Proteção na exchange (stop + take profit)                          #
