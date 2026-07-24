@@ -16,9 +16,12 @@ risk:
   max_daily_drawdown_pct: 4.0      # trava diária um pouco mais folgada p/ futuros
   max_weekly_drawdown_pct: 10.0    # respeita seu teto de ~10%
   max_consecutive_losses: 4
-  max_trades_per_day: 12
+  max_trades_per_day: 24            # teto de 24/dia (só se houver oportunidade)
   default_trailing_stop_pct: 8.0
   min_risk_reward_ratio: 1.5
+  # Envelope diário em DÓLARES:
+  max_daily_loss_usd: 100          # perdeu $100 no dia -> para até amanhã
+  daily_profit_target_usd: 200     # ganhou $200 no dia -> trava o ganho e para
 
 quant:
   mode: "pullback"

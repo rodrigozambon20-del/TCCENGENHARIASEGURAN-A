@@ -37,8 +37,14 @@ class BotState:
         self.open_positions: dict[str, Position] = {}
         self.trading_halted = False          # kill switch ativado
         self.defensive_mode_until: float = 0.0
+        self.daily_profit_locked = False     # meta diária de lucro atingida
         self.consecutive_losses = 0
         self.trades_today = 0
+
+    @property
+    def daily_pnl_usd(self) -> float:
+        """Resultado do dia em dólares (positivo = lucro)."""
+        return self.equity - self.day_start_equity
 
     @property
     def daily_drawdown_pct(self) -> float:
@@ -71,6 +77,8 @@ class BotState:
         async with self._lock:
             self.day_start_equity = self.equity
             self.trades_today = 0
+            self.daily_profit_locked = False
+            self.trading_halted = False   # novo dia zera a trava de perda diária
 
     async def roll_weekly(self) -> None:
         async with self._lock:

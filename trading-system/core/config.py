@@ -31,6 +31,9 @@ class RiskConfig:
     max_trades_per_day: int = 10
     default_trailing_stop_pct: float = 1.5
     min_risk_reward_ratio: float = 1.5
+    # Envelope diário em DÓLARES (0 = desligado):
+    max_daily_loss_usd: float = 0.0    # perdeu isso no dia -> para até amanhã
+    daily_profit_target_usd: float = 0.0  # ganhou isso no dia -> trava o ganho
 
 
 @dataclass

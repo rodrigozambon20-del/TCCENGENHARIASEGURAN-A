@@ -68,7 +68,20 @@ class RiskAgent(BaseAgent):
         if self.state.in_defensive_mode:
             return veto("Modo defensivo ativo — novas entradas bloqueadas")
 
-        # Camada 2 — circuit breakers de drawdown
+        # Camada 2 — envelope diário em dólares (meta e limite de perda)
+        if cfg.max_daily_loss_usd > 0 and \
+                self.state.daily_pnl_usd <= -cfg.max_daily_loss_usd:
+            await self.halt(f"Perda diária de ${abs(self.state.daily_pnl_usd):.2f} "
+                            f">= limite ${cfg.max_daily_loss_usd:.2f} — parando até amanhã")
+            return veto("Limite de perda diária atingido")
+        if self.state.daily_profit_locked or (
+                cfg.daily_profit_target_usd > 0 and
+                self.state.daily_pnl_usd >= cfg.daily_profit_target_usd):
+            self.state.daily_profit_locked = True
+            return veto(f"Meta diária de ${cfg.daily_profit_target_usd:.2f} atingida "
+                        f"— ganho travado, sem novas entradas hoje")
+
+        # Camada 2b — circuit breakers de drawdown (percentual, rede de segurança)
         if self.state.daily_drawdown_pct >= cfg.max_daily_drawdown_pct:
             await self.halt(f"Drawdown diário {self.state.daily_drawdown_pct:.2f}% "
                             f">= limite {cfg.max_daily_drawdown_pct}%")
@@ -213,7 +226,24 @@ class RiskAgent(BaseAgent):
                 if equity is not None:
                     await self.state.update_equity(equity)
                 if not self.state.trading_halted:
-                    if self.state.daily_drawdown_pct >= cfg.max_daily_drawdown_pct:
+                    # Envelope diário em dólares
+                    if cfg.max_daily_loss_usd > 0 and \
+                            self.state.daily_pnl_usd <= -cfg.max_daily_loss_usd:
+                        await self.halt(
+                            f"Perda diária de ${abs(self.state.daily_pnl_usd):.2f} "
+                            f"atingiu o limite de ${cfg.max_daily_loss_usd:.2f}",
+                            close_positions=True)
+                    elif (cfg.daily_profit_target_usd > 0 and not
+                          self.state.daily_profit_locked and
+                          self.state.daily_pnl_usd >= cfg.daily_profit_target_usd):
+                        self.state.daily_profit_locked = True
+                        self.log.info("🎯 META DIÁRIA de $%.2f atingida — ganho "
+                                      "travado, sem novas entradas hoje",
+                                      cfg.daily_profit_target_usd)
+                        await self.send_placar(
+                            header=f"🎯 Meta diária de ${cfg.daily_profit_target_usd:.0f} "
+                                   f"atingida! Parando por hoje.")
+                    elif self.state.daily_drawdown_pct >= cfg.max_daily_drawdown_pct:
                         await self.halt("Watchdog: drawdown diário máximo",
                                         close_positions=True)
                     elif self.state.weekly_drawdown_pct >= cfg.max_weekly_drawdown_pct:
