@@ -10,17 +10,17 @@ market_type: futures     # ativa o mercado de futuros
 leverage: 3              # 3x — moderado (backtest: acima de ~10x começa a liquidar)
 
 risk:
-  max_risk_per_trade_pct: 2.0      # 2% em risco por operação
-  max_position_pct: 20.0           # exposição nominal maior (alavancado)
+  max_risk_per_trade_pct: 3.0      # 3% em risco por operação (mais lucro E mais perda)
+  max_position_pct: 40.0           # posições ~2x maiores (mais lucro e mais perda)
   max_open_positions: 4
-  max_daily_drawdown_pct: 4.0      # trava diária um pouco mais folgada p/ futuros
-  max_weekly_drawdown_pct: 10.0    # respeita seu teto de ~10%
+  max_daily_drawdown_pct: 6.0      # rede de segurança % (o limite em $ abaixo age antes)
+  max_weekly_drawdown_pct: 12.0    # semanal um pouco mais folgado p/ o perfil agressivo
   max_consecutive_losses: 4
   max_trades_per_day: 24            # teto de 24/dia (só se houver oportunidade)
   default_trailing_stop_pct: 8.0
   min_risk_reward_ratio: 1.5
   # Envelope diário em DÓLARES:
-  max_daily_loss_usd: 100                 # perdeu $100 no dia -> para até amanhã
+  max_daily_loss_usd: 200                 # perdeu $200 no dia -> para até amanhã
   # Trava de lucro do dia: ao atingir +$200, ativa um piso $100 abaixo do
   # pico (começa em $100). O piso sobe junto com o lucro. Se o resultado do
   # dia recuar até o piso, o bot fecha tudo e para — lucro protegido.
