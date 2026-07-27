@@ -37,7 +37,7 @@ class BotState:
         self.open_positions: dict[str, Position] = {}
         self.trading_halted = False          # kill switch ativado
         self.defensive_mode_until: float = 0.0
-        self.daily_profit_locked = False     # meta diária de lucro atingida
+        self.daily_peak_pnl = 0.0            # maior lucro do dia (p/ trava de lucro)
         self.consecutive_losses = 0
         self.trades_today = 0
 
@@ -77,8 +77,8 @@ class BotState:
         async with self._lock:
             self.day_start_equity = self.equity
             self.trades_today = 0
-            self.daily_profit_locked = False
-            self.trading_halted = False   # novo dia zera a trava de perda diária
+            self.daily_peak_pnl = 0.0
+            self.trading_halted = False   # novo dia zera as travas diárias
 
     async def roll_weekly(self) -> None:
         async with self._lock:

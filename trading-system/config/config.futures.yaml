@@ -20,8 +20,13 @@ risk:
   default_trailing_stop_pct: 8.0
   min_risk_reward_ratio: 1.5
   # Envelope diário em DÓLARES:
-  max_daily_loss_usd: 100          # perdeu $100 no dia -> para até amanhã
-  daily_profit_target_usd: 200     # ganhou $200 no dia -> trava o ganho e para
+  max_daily_loss_usd: 100                 # perdeu $100 no dia -> para até amanhã
+  # Trava de lucro do dia: ao atingir +$200, ativa um piso $100 abaixo do
+  # pico (começa em $100). O piso sobe junto com o lucro. Se o resultado do
+  # dia recuar até o piso, o bot fecha tudo e para — lucro protegido.
+  # Continua operando normalmente enquanto o lucro do dia sobe.
+  daily_profit_lock_trigger_usd: 200
+  daily_profit_lock_gap_usd: 100
 
 quant:
   mode: "pullback"

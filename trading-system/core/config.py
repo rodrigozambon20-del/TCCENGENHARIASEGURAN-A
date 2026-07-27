@@ -33,7 +33,12 @@ class RiskConfig:
     min_risk_reward_ratio: float = 1.5
     # Envelope diário em DÓLARES (0 = desligado):
     max_daily_loss_usd: float = 0.0    # perdeu isso no dia -> para até amanhã
-    daily_profit_target_usd: float = 0.0  # ganhou isso no dia -> trava o ganho
+    # Trava de lucro do dia (trailing no resultado diário): quando o lucro do
+    # dia atinge 'trigger', ativa um PISO 'gap' abaixo do pico; o piso sobe
+    # junto com o lucro. Se o resultado do dia recuar até o piso, fecha e para
+    # (protegendo o ganho). Continua operando enquanto o lucro subir.
+    daily_profit_lock_trigger_usd: float = 0.0
+    daily_profit_lock_gap_usd: float = 0.0
 
 
 @dataclass
