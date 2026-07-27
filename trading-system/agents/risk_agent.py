@@ -154,19 +154,33 @@ class RiskAgent(BaseAgent):
 
     STATUS_REPORT_EVERY = 60  # ciclos de 30s => placar a cada 30 min
 
+    def _bot_status(self) -> str:
+        """Frase curta do que o bot está fazendo agora."""
+        s = self.state
+        if s.trading_halted:
+            return "🛑 PARADO (limite de perda / kill switch) — volta amanhã"
+        if s.daily_profit_locked:
+            return "🎯 META DO DIA ATINGIDA — segurando posições, sem novas entradas"
+        if s.in_defensive_mode:
+            return "🛡️ Modo defensivo (notícia) — só gerindo o que está aberto"
+        return "✅ Operando — buscando oportunidades"
+
     def _placar(self) -> tuple[str, str]:
         """Monta (emoji, texto) do placar: saldo, resultado do dia, posições."""
         s = self.state
         pnl_day = s.equity - s.day_start_equity
         pnl_pct = (pnl_day / s.day_start_equity * 100) if s.day_start_equity else 0.0
         emoji = "🟢" if pnl_day >= 0 else "🔴"
+        n = len(s.open_positions)
         positions = (", ".join(f"{sym} {p.side} @ {p.entry_price:.2f}"
                                for sym, p in s.open_positions.items())
                      or "nenhuma")
-        text = (f"Saldo: {s.equity:,.2f} USDT\n"
-                f"Resultado do dia: {pnl_day:+,.2f} USDT ({pnl_pct:+.2f}%)\n"
-                f"Posições abertas: {positions}\n"
-                f"Trades hoje: {s.trades_today}")
+        text = (f"Status: {self._bot_status()}\n"
+                f"Saldo: {s.equity:,.2f} USDT\n"
+                f"Resultado do dia (inclui posições abertas): "
+                f"{pnl_day:+,.2f} USDT ({pnl_pct:+.2f}%)\n"
+                f"Posições abertas ({n}): {positions}\n"
+                f"Trades fechados hoje: {s.trades_today}")
         return emoji, text
 
     async def send_placar(self, header: str | None = None) -> None:

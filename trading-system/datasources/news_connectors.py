@@ -36,11 +36,13 @@ RSS_FEEDS = {
     "cointelegraph": "https://cointelegraph.com/rss",
     "coindesk": "https://www.coindesk.com/arc/outboundfeeds/rss/",
     "decrypt": "https://decrypt.co/feed",
-    "bitcoinmagazine": "https://bitcoinmagazine.com/feed",
+    # bitcoinmagazine removido: certificado SSL expirado (erro recorrente).
     "google_news": ("https://news.google.com/rss/search"
                     "?q=bitcoin+OR+cryptocurrency+when:1d&hl=en-US&gl=US&ceid=US:en"),
 }
-REDDIT_SUBS = ("CryptoCurrency", "Bitcoin")
+# Reddit desativado: o endpoint público passou a bloquear (HTTP 403) e
+# poluía o log. As fontes RSS + Fear & Greed já dão sinal suficiente.
+REDDIT_SUBS = ()
 REDDIT_URL = "https://www.reddit.com/r/{sub}/hot.json?limit=25"
 FEAR_GREED_URL = "https://api.alternative.me/fng/?limit=1"
 CRYPTOPANIC_URL = ("https://cryptopanic.com/api/v1/posts/"
@@ -84,7 +86,9 @@ class NewsAggregator:
         items: list[NewsItem] = []
         for result in results:
             if isinstance(result, Exception):
-                log.warning("Fonte indisponível (ignorada neste ciclo): %s", result)
+                # Nível debug: fonte fora do ar é rotina, não erro (as demais
+                # cobrem). Não polui a tela com "erros" que não são erros.
+                log.debug("Fonte indisponível (ignorada neste ciclo): %s", result)
             else:
                 items.extend(result)
         return self._dedup(items)
