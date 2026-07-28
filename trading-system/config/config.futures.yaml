@@ -11,23 +11,23 @@ leverage: 3              # 3x — moderado (backtest: acima de ~10x começa a li
 trading_capital_usd: 2000  # dimensiona as ordens como conta de $2000 (real futuro)
 
 risk:
-  max_risk_per_trade_pct: 3.0      # 3% em risco por operação (mais lucro E mais perda)
-  max_position_pct: 40.0           # posições ~2x maiores (mais lucro e mais perda)
+  # Perfil proporcional a uma conta de $2000 (trading_capital_usd)
+  max_risk_per_trade_pct: 2.0      # 2% de $2000 = ~$40 de risco por trade
+  max_position_pct: 30.0           # exposição máx ~$600 por posição
   max_open_positions: 4
-  max_daily_drawdown_pct: 6.0      # rede de segurança % (o limite em $ abaixo age antes)
-  max_weekly_drawdown_pct: 12.0    # semanal um pouco mais folgado p/ o perfil agressivo
+  max_daily_drawdown_pct: 6.0      # rede de segurança % (o limite em $ age antes)
+  max_weekly_drawdown_pct: 12.0
   max_consecutive_losses: 4
   max_trades_per_day: 24            # teto de 24/dia (só se houver oportunidade)
   default_trailing_stop_pct: 8.0
   min_risk_reward_ratio: 1.5
-  # Envelope diário em DÓLARES:
-  max_daily_loss_usd: 200                 # perdeu $200 no dia -> para até amanhã
-  # Trava de lucro do dia: ao atingir +$200, ativa um piso $100 abaixo do
-  # pico (começa em $100). O piso sobe junto com o lucro. Se o resultado do
-  # dia recuar até o piso, o bot fecha tudo e para — lucro protegido.
-  # Continua operando normalmente enquanto o lucro do dia sobe.
-  daily_profit_lock_trigger_usd: 200
-  daily_profit_lock_gap_usd: 100
+  # Envelope diário em DÓLARES (proporcional a $2000):
+  max_daily_loss_usd: 60                  # perdeu $60 (3% de $2000) -> para até amanhã
+  # Trava de lucro: ao atingir +$80 (4%), piso $40 (2%) abaixo do pico, que
+  # sobe junto com o lucro. Recuou até o piso -> fecha e embolsa. Segue
+  # operando enquanto o lucro do dia sobe.
+  daily_profit_lock_trigger_usd: 80
+  daily_profit_lock_gap_usd: 40
 
 quant:
   mode: "pullback"
