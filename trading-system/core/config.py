@@ -90,6 +90,10 @@ class AppConfig:
     testnet: bool = True                     # SEMPRE começar em testnet
     market_type: str = "spot"                # "spot" | "futures"
     leverage: int = 1                        # só usado em futures (2-3 recomendado)
+    # Capital de operação simulado (0 = usa o saldo real da conta). Ex.: na
+    # testnet o saldo é $5000, mas com trading_capital_usd=2000 o bot
+    # dimensiona as ordens como se a conta tivesse só $2000 — espelha o real.
+    trading_capital_usd: float = 0.0
     risk: RiskConfig = field(default_factory=RiskConfig)
     quant: QuantConfig = field(default_factory=QuantConfig)
     sentiment: SentimentConfig = field(default_factory=SentimentConfig)
@@ -122,6 +126,7 @@ class AppConfig:
             cfg.testnet = raw.get("testnet", cfg.testnet)
             cfg.market_type = raw.get("market_type", cfg.market_type)
             cfg.leverage = raw.get("leverage", cfg.leverage)
+            cfg.trading_capital_usd = raw.get("trading_capital_usd", cfg.trading_capital_usd)
             for section, target in (("risk", cfg.risk), ("quant", cfg.quant),
                                     ("sentiment", cfg.sentiment), ("execution", cfg.execution)):
                 for k, v in (raw.get(section) or {}).items():

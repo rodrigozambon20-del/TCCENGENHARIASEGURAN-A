@@ -8,6 +8,7 @@ initial_equity: 10000
 testnet: true            # SEMPRE testnet primeiro
 market_type: futures     # ativa o mercado de futuros
 leverage: 3              # 3x — moderado (backtest: acima de ~10x começa a liquidar)
+trading_capital_usd: 2000  # dimensiona as ordens como conta de $2000 (real futuro)
 
 risk:
   max_risk_per_trade_pct: 3.0      # 3% em risco por operação (mais lucro E mais perda)

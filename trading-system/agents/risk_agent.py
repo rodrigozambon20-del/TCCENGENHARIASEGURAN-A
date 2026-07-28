@@ -113,12 +113,14 @@ class RiskAgent(BaseAgent):
             return veto(f"Risco/retorno {rr:.2f} abaixo do mínimo {cfg.min_risk_reward_ratio}")
 
         # Camada 5 — POSITION SIZING (o coração da preservação de capital)
-        # risco_monetário = equity * max_risk_pct  ==>  qty = risco / dist_do_stop
-        risk_capital = self.state.equity * (cfg.max_risk_per_trade_pct / 100.0)
+        # Usa o CAPITAL DE OPERAÇÃO (ex.: $2000 simulado), não o saldo cru da
+        # testnet — assim o teste espelha a conta real que o usuário terá.
+        capital = self.effective_capital()
+        risk_capital = capital * (cfg.max_risk_per_trade_pct / 100.0)
         qty = risk_capital / risk_per_unit
 
         # Camada 6 — teto de exposição nominal por posição
-        max_notional = self.state.equity * (cfg.max_position_pct / 100.0)
+        max_notional = capital * (cfg.max_position_pct / 100.0)
         if qty * p.entry_price > max_notional:
             qty = max_notional / p.entry_price
             self.log.info("Qty reduzida pelo teto de exposição (%.1f%% do capital)",
@@ -150,6 +152,14 @@ class RiskAgent(BaseAgent):
 
     STATUS_REPORT_EVERY = 60  # ciclos de 30s => placar a cada 30 min
 
+    def effective_capital(self) -> float:
+        """Capital de operação: o $2000 simulado (+/- o lucro/prejuízo desde o
+        boot) se configurado; senão o saldo real da conta."""
+        tc = self.config.trading_capital_usd
+        if tc and tc > 0:
+            return max(1.0, tc + (self.state.equity - self.state.initial_equity))
+        return self.state.equity
+
     def _bot_status(self) -> str:
         """Frase curta do que o bot está fazendo agora."""
         s = self.state
@@ -175,8 +185,9 @@ class RiskAgent(BaseAgent):
         positions = (", ".join(f"{sym} {p.side} @ {p.entry_price:.2f}"
                                for sym, p in s.open_positions.items())
                      or "nenhuma")
+        saldo = self.effective_capital()  # capital simulado ($2000) se configurado
         text = (f"Status: {self._bot_status()}\n"
-                f"Saldo: {s.equity:,.2f} USDT\n"
+                f"Saldo: {saldo:,.2f} USDT\n"
                 f"Resultado do dia (inclui posições abertas): "
                 f"{pnl_day:+,.2f} USDT ({pnl_pct:+.2f}%)\n"
                 f"Posições abertas ({n}): {positions}\n"
