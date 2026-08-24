@@ -24,97 +24,99 @@ OUT = "Poster_Psike_TCC.pptx"
 # ---- Conteúdo por seção (título mantido do modelo; corpo substituído) --------
 
 INTRO = [
-    "A Portaria MTE nº 1.419/2024 atualizou a NR-1 para exigir, de todo "
-    "empregador CLT, a identificação, a avaliação e a documentação dos fatores "
-    "de risco psicossocial relacionados ao trabalho dentro do Gerenciamento de "
-    "Riscos Ocupacionais (GRO) e do PGR, com exigibilidade a partir de 26 de "
-    "maio de 2026.",
-    "A urgência é reforçada pelo reconhecimento da síndrome de burnout como "
-    "doença ocupacional na CID-11 (código QD85), adotada oficialmente no Brasil "
-    "a partir de 2025, e pelo crescimento dos afastamentos por saúde mental "
-    "(TREML et al., 2025; ANAMT, 2026).",
-    "Na maioria das organizações esse ciclo ainda é feito em papel ou planilhas "
-    "avulsas, com baixa rastreabilidade e alto custo. No setor de distribuição "
-    "de energia elétrica, os fatores psicossociais (pressão por "
-    "restabelecimento, turnos, sobreaviso, risco de acidente grave) convivem "
-    "com riscos regulados pela NR-10 e pela NR-35 (SOUZA et al., 2010).",
-    "Objetivo: desenvolver e aplicar uma plataforma digital de baixo custo para "
-    "operacionalizar a gestão de riscos psicossociais conforme a NR-1, "
-    "integrada a outros processos de SST sobre a mesma base de dados.",
+    "A NR-1 exige que o empregador analise os acidentes e as doenças "
+    "relacionadas ao trabalho, identifique suas causas e realimente o PGR "
+    "(GRO). Na prática, o registro segue manual e tardio, a investigação para "
+    "no \u201cato inseguro\u201d e os quase acidentes raramente são reportados.",
+    "No setor elétrico a gravidade é extrema: 2.089 acidentes de origem "
+    "elétrica no Brasil em 2023, com 781 óbitos (ABRACOPEL, 2024); 250 mortes "
+    "envolvendo a rede de distribuição (ABRADEE, 2024). Cada ocorrência — e "
+    "cada quase acidente — é aprendizado que não pode ser desperdiçado.",
+    "A literatura brasileira consolidou o método da árvore de causas como "
+    "antídoto à investigação culpabilizadora, revelando os fatores gerenciais "
+    "e organizacionais na gênese dos acidentes (BINDER; ALMEIDA, 1997).",
+    "Objetivo: desenvolver e aplicar um sistema digital de registro e "
+    "investigação de acidentes e quase acidentes estruturado no método da "
+    "árvore de causas, integrado ao GRO/PGR da NR-1, em uma organização de "
+    "distribuição de energia elétrica.",
 ]
 
 METODOLOGIA = [
-    "Pesquisa aplicada, de natureza tecnológica: desenvolvimento de um artefato "
-    "(a plataforma Psike) seguido de estudo de caso com aplicação piloto.",
+    "Pesquisa aplicada, de natureza tecnológica: desenvolvimento de artefato "
+    "(o sistema digital, módulo central da plataforma Psike) seguido de estudo "
+    "de caso — análise documental retrospectiva de ocorrências anonimizadas e "
+    "piloto de campo.",
     "Arquitetura de custo zero: frontend em página web autocontida (sem "
-    "instalação) e backend gratuito em Google Apps Script/Sheets como "
-    "repositório único. Coleta anônima por construção, em conformidade com a "
-    "LGPD.",
-    "Instrumento de avaliação: 10 itens em 6 dimensões (carga e ritmo; "
-    "autonomia e controle; clareza de papel; apoio social e de liderança; "
-    "reconhecimento; assédio e violência), em escala Likert de 5 pontos, com "
-    "classificação automática do risco por dimensão em três faixas.",
-    "A plataforma reúne quatro módulos sobre a mesma base: (1) riscos "
-    "psicossociais (NR-1/ISO 45003); (2) permissão de trabalho para redes de "
-    "distribuição (NR-10/NR-35); (3) Avaliação Ergonômica Preliminar (NR-17); "
-    "(4) registro e investigação de acidentes e quase acidentes.",
+    "instalação, uso no celular em campo) e backend gratuito em nuvem como "
+    "repositório único. Tratamento de dados anonimizado, conforme a LGPD.",
+    "Registro em campo em menos de 5 minutos: classificação (acidente com/sem "
+    "afastamento, quase acidente, condição insegura), descrição, tarefa e "
+    "alerta automático de CAT. Investigação guiada em 3 níveis de causas: "
+    "imediatas → subjacentes → básicas — o formulário não permite concluir só "
+    "com causas imediatas.",
+    "Ações corretivas/preventivas com responsável e prazo; indicadores "
+    "automáticos: razão quase acidentes/acidentes, tempo evento–registro, "
+    "ações no prazo e taxas de frequência e gravidade (NBR 14280). Módulos "
+    "complementares na mesma base: permissão de trabalho (NR-10/NR-35), "
+    "fatores psicossociais (NR-1) e AEP (NR-17).",
 ]
 
 ESTUDO_CASO = [
-    "A aplicação piloto foi conduzida em uma organização do setor de "
-    "distribuição de energia elétrica, preservada em anonimato, no período de "
-    "[PREENCHER: período], com [PREENCHER: número] trabalhadores dos setores de "
-    "[PREENCHER: setores]. Não se coletam dados que identifiquem a organização "
-    "ou as pessoas.",
-    "O link da avaliação anônima foi distribuído por [PREENCHER: canal — ex.: "
-    "QR code em DDS], precedido de comunicação sobre o caráter voluntário e "
-    "anônimo da participação, em conformidade com a LGPD.",
-    "As permissões de trabalho (Módulo 2) foram testadas em campo em atividades "
-    "de [PREENCHER: ex.: manutenção de rede desenergizada / linha viva / "
-    "trabalho em altura em postes], com checklist, geolocalização e assinatura "
-    "digital.",
+    "Organização do setor de distribuição de energia elétrica, preservada em "
+    "anonimato. Parte documental: [PREENCHER: número] ocorrências históricas "
+    "anonimizadas reinvestigadas com o roteiro de 3 níveis, comparando a "
+    "profundidade causal com a análise original.",
+    "Parte de campo: piloto no período de [PREENCHER: período], com as equipes "
+    "de [PREENCHER: escopo] registrando novas ocorrências e condições "
+    "inseguras no local, pelo celular.",
+    "Nenhum caso identifica pessoas, datas exatas ou locais; os exemplos são "
+    "descritos com função genérica e circunstâncias descaracterizadas.",
 ]
 
 RESULTADOS = [
-    "A plataforma foi implementada integralmente, com os quatro módulos "
-    "operacionais. O fluxo do Módulo 1 — da resposta anônima no celular ao "
-    "texto pronto para o Inventário de Riscos Ocupacionais (IRO) — ocorre sem "
-    "qualquer tabulação manual, a custo de operação nulo.",
-    "[PREENCHER: inserir os resultados reais — nº de respondentes, taxa de "
-    "adesão, nota média e faixa de risco por dimensão. Substituir as figuras de "
-    "exemplo ao lado pelo gráfico do painel por dimensão e por telas do app.]",
-    "Discussão: a principal barreira à conformidade com a nova NR-1 é "
-    "operacional, não conceitual. A digitalização de ponta a ponta reduziu o "
-    "custo do ciclo e melhorou o anonimato, a consistência da classificação e "
-    "a rastreabilidade dos registros exigida pela norma.",
+    "O sistema foi implementado integralmente e está operacional: registro no "
+    "local, investigação em 3 níveis, ações e indicadores atualizados sem "
+    "transcrição manual, a custo de operação nulo.",
+    "[PREENCHER: inserir resultados reais — distribuição de causas por nível "
+    "(análise original × estruturada), volume de quase acidentes reportados no "
+    "piloto, razão QA/acidentes e tempo evento–registro. Substituir as figuras "
+    "pelo gráfico do painel e telas do módulo.]",
+    "Discussão: quando o instrumento obriga a progressão até as causas "
+    "básicas, a investigação alcança os fatores organizacionais que a análise "
+    "tradicional não vê (BINDER; ALMEIDA, 1997; REASON, 1997) — e o reporte "
+    "fácil de quase acidentes captura a base da pirâmide de eventos que "
+    "antecede a lesão grave (HEINRICH, 1931; BIRD; GERMAIN, 1985).",
 ]
 
 CONCLUSAO = [
-    "A digitalização viabiliza o cumprimento da NR-1 quanto aos fatores "
-    "psicossociais mesmo em organizações com equipes de SST enxutas, a custo "
-    "praticamente nulo, e transforma o inventário de riscos em um documento "
-    "vivo, alimentado pelos próprios processos operacionais.",
-    "Trabalhos futuros: validação psicométrica do instrumento com amostras "
-    "maiores, calibração dos pontos de corte com séries históricas, "
-    "autenticação e segregação de dados por empresa e acompanhamento "
-    "longitudinal da eficácia das medidas de controle.",
+    "A digitalização do ciclo registro–investigação–ação torna exequível, a "
+    "custo praticamente nulo, a exigência da NR-1 de analisar ocorrências e "
+    "realimentar o PGR — deslocando a análise da culpabilização individual "
+    "para os fatores organizacionais e reduzindo a subnotificação de quase "
+    "acidentes.",
+    "Trabalhos futuros: diagrama completo da árvore de causas no software, "
+    "autenticação e segregação por organização, acompanhamento longitudinal "
+    "dos indicadores e cruzamento analítico entre ocorrências, permissões de "
+    "trabalho e sinalização psicossocial.",
 ]
 
 REFERENCIAS = [
-    "BRASIL. NR-1 — Disposições gerais e gerenciamento de riscos ocupacionais. "
-    "Redação da Portaria MTE nº 1.419/2024.",
-    "BRASIL. NR-10 — Segurança em instalações e serviços em eletricidade.",
-    "ISO 45003:2021 — Psychological health and safety at work.",
-    "SOUZA, S. F. et al. Fatores psicossociais do trabalho e transtornos "
-    "mentais comuns em eletricitários. Rev. Saúde Pública, v. 44, n. 4, 2010.",
-    "TREML, M. F. Q. et al. Burnout syndrome in Brazil (2014–2024). Rev. Bras. "
-    "Medicina do Trabalho, 2025.",
-    "WHO. Guidelines on mental health at work. Geneva, 2022.",
+    "ABRACOPEL. Anuário Estatístico de Acidentes de Origem Elétrica 2024 "
+    "(ano-base 2023). Salto, 2024.",
+    "BINDER, M. C. P.; ALMEIDA, I. M. Estudo de caso de dois acidentes do "
+    "trabalho investigados com o método de árvore de causas. Cad. Saúde "
+    "Pública, v. 13, n. 4, 1997.",
+    "BRASIL. NR-1 — Gerenciamento de riscos ocupacionais (Portaria MTE nº "
+    "1.419/2024).",
+    "ABNT. NBR 14280:2001 — Cadastro de acidente do trabalho.",
+    "REASON, J. Managing the risks of organizational accidents. Ashgate, 1997.",
+    "HEINRICH, H. W. Industrial accident prevention. McGraw-Hill, 1931.",
 ]
 
 HEADER = {
-    "tema": "GESTÃO DIGITAL DE RISCOS PSICOSSOCIAIS CONFORME A NR-1: "
-            "plataforma de SST aplicada à distribuição de energia elétrica",
+    "tema": "SISTEMA DIGITAL DE INVESTIGAÇÃO DE ACIDENTES PELA ÁRVORE DE "
+            "CAUSAS: registro de ocorrências integrado à NR-1 na distribuição "
+            "de energia elétrica",
     "autor": "Rodrigo Zambon [PREENCHER: nome completo]",
     "contato": "[PREENCHER: e-mail]  ·  Supervisão: [PREENCHER: nome]  ·  "
                "Apoio: CERPRO",

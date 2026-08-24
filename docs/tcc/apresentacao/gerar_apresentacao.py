@@ -108,7 +108,6 @@ def pic_card(s, path, l, t, w):
 # ============================================================ 1. CAPA =========
 s = slide(); bg(s, NAVY)
 rect(s, 0, Inches(6.9), SW, Inches(0.14), GOLD)
-# marca
 mk = rect(s, Inches(0.7), Inches(0.7), Inches(0.7), Inches(0.7), GOLD)
 set_para(mk.text_frame.paragraphs[0], "P", 26, NAVY, bold=True,
          align=PP_ALIGN.CENTER, font="Georgia")
@@ -116,14 +115,14 @@ mk.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
 tb = box(s, Inches(1.6), Inches(0.72), Inches(6), Inches(0.7))
 set_para(tb.text_frame.paragraphs[0], "Psike", 26, WHITE, bold=True, font="Georgia")
 
-tb = box(s, Inches(0.9), Inches(2.4), Inches(11.5), Inches(2.6))
+tb = box(s, Inches(0.9), Inches(2.2), Inches(11.5), Inches(2.9))
 tf = tb.text_frame
-set_para(tf.paragraphs[0], "GESTÃO DIGITAL DE RISCOS PSICOSSOCIAIS CONFORME A NR-1",
-         34, WHITE, bold=True, font="Georgia", space_after=10)
+set_para(tf.paragraphs[0], "INVESTIGAÇÃO DIGITAL DE ACIDENTES PELO MÉTODO DA "
+         "ÁRVORE DE CAUSAS", 32, WHITE, bold=True, font="Georgia", space_after=10)
 set_para(tf.add_paragraph(),
-         "Desenvolvimento e aplicação de uma plataforma de SST em serviços "
-         "de distribuição de energia elétrica", 20, RGBColor(0xC7,0xCE,0xDB),
-         font="Calibri")
+         "Registro e análise de acidentes e quase acidentes integrados à NR-1 "
+         "em serviços de distribuição de energia elétrica", 20,
+         RGBColor(0xC7,0xCE,0xDB), font="Calibri")
 
 tb = box(s, Inches(0.9), Inches(5.2), Inches(11.5), Inches(1.6))
 tf = tb.text_frame
@@ -134,115 +133,114 @@ set_para(tf.add_paragraph(),
          "Segurança do Trabalho — PECE/EPUSP", 14, RGBColor(0xAE,0xB8,0xC9))
 set_para(tf.add_paragraph(), "São Paulo · [PREENCHER: data da defesa]",
          14, RGBColor(0xAE,0xB8,0xC9))
-notes(s, "Cumprimentar a banca. Apresentar-se, o tema e o orientador. "
-         "Frase de abertura: o TCC nasce de uma exigência nova da NR-1 (2024) "
-         "e entrega uma solução prática, aplicada no setor de distribuição de "
-         "energia. Duração-alvo da defesa: ~15 min + arguição.")
+notes(s, "Cumprimentar a banca. Frase de abertura: no setor elétrico o acidente "
+         "raramente é leve — e a NR-1 obriga a analisar cada ocorrência e "
+         "realimentar o PGR. Este TCC entrega o instrumento que torna isso "
+         "exequível. Duração-alvo: ~15 min + arguição.")
 
 # ============================================ 2. CONTEXTO / PROBLEMA ===========
 s = slide(); bg(s, WHITE)
-title_bar(s, "Contexto e problema", "Uma exigência nova, um processo ainda manual")
+title_bar(s, "Contexto e problema", "A norma exige analisar; a prática ainda é manual")
 bullets(s, [
-    "A Portaria MTE nº 1.419/2024 atualizou a NR-1: fatores de risco "
-    "psicossocial passaram a ser obrigatórios no GRO/PGR.",
-    "Exigibilidade a partir de 26/05/2026 — alcança todo empregador CLT.",
-    "Não basta aplicar um questionário: é preciso identificar, avaliar, "
-    "classificar, registrar no Inventário de Riscos (IRO) e agir — com "
-    "rastreabilidade de longo prazo.",
-    "Na prática, a maioria das empresas faz isso em papel/planilha: baixa "
-    "rastreabilidade e alto custo operacional.",
-    ("No setor de distribuição de energia, os fatores psicossociais convivem "
-     "com riscos graves (NR-10, NR-35) e demandas típicas: pressão por "
-     "restabelecimento, turnos, sobreaviso, risco de acidente fatal.", 1),
+    "A NR-1 (GRO) obriga o empregador a analisar acidentes e doenças "
+    "relacionadas ao trabalho, identificar causas e realimentar o PGR.",
+    "Na prática: registro em papel, horas/dias após o evento; investigação "
+    "que para no “ato inseguro”; quase acidentes raramente reportados; ações "
+    "sem acompanhamento.",
+    "A literatura chama essa prática de paradigma culpabilizador — e a "
+    "associa diretamente à recorrência dos eventos (Binder; Almeida, 1997; "
+    "Almeida, 2006).",
+    ("Setor elétrico: 2.089 acidentes de origem elétrica em 2023, 781 óbitos "
+     "(Abracopel, 2024); 250 mortes na rede de distribuição (Abradee, 2024).", 1),
+    ("Eventos raros e graves ⇒ o quase acidente é o insumo mais abundante do "
+     "aprendizado — se for reportado.", 1),
 ])
-notes(s, "Ancorar o problema: a norma mudou, o prazo é real e próximo, e a "
-         "forma como as empresas cumprem hoje é frágil. Situar o setor de "
-         "energia como campo pertinente.")
+notes(s, "Ancorar o problema nos números do setor e na exigência da NR-1. "
+         "Ponto-chave: investigação rasa = acidente repetido.")
 
 # ============================================ 3. JUSTIFICATIVA =================
 s = slide(); bg(s, WHITE)
-title_bar(s, "Justificativa", "A lacuna entre a norma e as ferramentas")
+title_bar(s, "Justificativa", "Três razões para este trabalho")
 bullets(s, [
-    "Soluções comerciais de SST: custo alto para empresas menores.",
-    "Instrumentos validados extensos (ex.: COPSOQ, 80+ itens): exigem "
-    "competência estatística pouco disponível em equipes enxutas.",
-    "Formulário impresso tabulado à mão: fragiliza justamente o que a NR-1 "
-    "passou a exigir — anonimato, consistência e rastreabilidade.",
-    "Oportunidade: demonstrar uma solução digital de custo praticamente nulo, "
-    "replicável por profissionais de SST sem apoio de TI.",
+    "Gravidade setorial: letalidade dos acidentes elétricos supera 1/3 das "
+    "ocorrências (Abracopel, 2024) — cada evento desperdiçado custa caro.",
+    "Exigência normativa: NR-1 demanda análise com método e registro "
+    "rastreável; NBR 14280 padroniza cadastro e estatísticas.",
+    "Lacuna prática: o método da árvore de causas é consolidado na literatura "
+    "brasileira desde os anos 1990, mas carece de ferramenta digital "
+    "acessível que o leve ao campo.",
+    "Proposta: sistema de custo praticamente nulo, replicável por equipes de "
+    "SST enxutas, sem apoio de TI.",
 ])
-notes(s, "Deixar claro o 'gap' que justifica o trabalho. Enfatizar custo "
-         "quase nulo e replicabilidade como diferencial.")
+notes(s, "Deixar claro o gap: método existe, norma exige, ferramenta "
+         "acessível não existia. O diferencial é operacionalizar.")
 
 # ============================================ 4. OBJETIVOS =====================
 s = slide(); bg(s, WHITE)
 title_bar(s, "Objetivos", "Objetivo geral e específicos")
 bullets(s, [
-    "GERAL: desenvolver e aplicar uma plataforma digital para identificação, "
-    "avaliação e documentação de fatores de risco psicossocial conforme a "
-    "NR-1, integrada à gestão de riscos de uma distribuidora de energia.",
-    ("Sistematizar os requisitos da NR-1 e referências (Guia MTE, ISO 45003);", 1),
-    ("Construir um instrumento enxuto (10 itens, 6 dimensões) com coleta "
-     "anônima e classificação objetiva de risco;", 1),
-    ("Implementar a plataforma (web + backend gratuito) com painel e geração "
-     "automática de texto para o IRO;", 1),
-    ("Digitalizar processos complementares: APR (NR-10/35), AEP (NR-17) e "
-     "acidentes/near-miss;", 1),
-    ("Aplicar em piloto e discutir resultados, limitações e generalização.", 1),
+    "GERAL: desenvolver e aplicar um sistema digital de registro e "
+    "investigação de acidentes e quase acidentes, estruturado no método da "
+    "árvore de causas e integrado ao GRO (NR-1), em uma organização de "
+    "distribuição de energia elétrica.",
+    ("Sistematizar os requisitos da NR-1, NBR 14280, ISO 45001 e a "
+     "articulação com a CAT/eSocial;", 1),
+    ("Revisar os modelos de causalidade e o método da árvore de causas;", 1),
+    ("Implementar registro em campo, investigação em 3 níveis de causas, "
+     "gestão de ações e indicadores;", 1),
+    ("Integrar aos módulos complementares (PT NR-10/35, psicossocial NR-1, "
+     "AEP NR-17) na mesma base;", 1),
+    ("Aplicar em estudo de caso (retrospectivo + piloto) e discutir "
+     "resultados e limitações.", 1),
 ])
-notes(s, "Ler o objetivo geral com calma; passar pelos específicos "
-         "rapidamente — eles espelham a estrutura da metodologia e dos módulos.")
+notes(s, "Ler o geral com calma; os específicos espelham a estrutura do "
+         "trabalho.")
 
 # ============================================ 5. FUNDAMENTAÇÃO =================
 s = slide(); bg(s, WHITE)
-title_bar(s, "Fundamentação", "Do conceito às seis dimensões avaliadas")
+title_bar(s, "Fundamentação", "Do modelo causal ao roteiro de investigação")
 bullets(s, [
-    "Fatores psicossociais: aspectos da organização e gestão do trabalho com "
-    "potencial de dano — abordagem organizacional, não diagnóstico individual.",
-    "Modelos de base: demanda-controle-apoio (Karasek; Johnson & Hall), "
-    "esforço-recompensa (Siegrist), multidimensional (COPSOQ).",
-    "Burnout como desfecho: reconhecido na CID-11 (QD85), doença ocupacional "
-    "adotada no Brasil desde 2025; afastamentos em alta (Treml et al., 2025).",
-    "ISO 45003:2021: primeira norma internacional de riscos psicossociais; "
-    "recomenda integrar ao sistema de gestão de SST existente.",
-    "Setor elétrico: maior prevalência de transtornos mentais comuns com alta "
-    "demanda, baixo controle e baixo apoio (Souza et al., 2010).",
-    "Seis dimensões adotadas: carga e ritmo · autonomia e controle · clareza "
-    "de papel · apoio social e de liderança · reconhecimento · assédio e "
-    "violência.",
+    "Heinrich (1931) e Bird & Germain (1985): a pirâmide de eventos — muitos "
+    "quase acidentes antecedem a lesão grave; reportá-los é prevenção.",
+    "Reason (1990; 1997): falhas ativas × condições latentes — investigar só "
+    "a conduta do trabalhador deixa intactas as causas organizacionais.",
+    "Árvore de causas (INRS; Binder; Monteau; Almeida): reconstrução da rede "
+    "de fatos, sem juízo de culpa — referência brasileira consolidada.",
+    "Fatores humanos e organizacionais nas causas básicas: fadiga, pressão "
+    "de tempo, sobrecarga — ponte com os riscos psicossociais da NR-1 e com "
+    "o burnout (CID-11/QD85; Treml et al., 2025).",
+    "Operacionalização adotada: 3 níveis obrigatórios — causas imediatas → "
+    "subjacentes → básicas; o formulário não conclui no nível 1.",
 ], size=17)
-notes(s, "Mostrar que a seleção das dimensões tem lastro teórico e alinhamento "
-         "com a ISO 45003 e o Guia do MTE. Reforçar: avalia a organização, não "
-         "o indivíduo. Citar o burnout (CID-11) como o desfecho que a gestão "
-         "psicossocial ajuda a prevenir — é um ponto cobrado na avaliação.")
+notes(s, "Mostrar a linha: modelo causal define a investigação. Citar o "
+         "burnout como fator humano contribuinte (ponto cobrado na "
+         "avaliação). Fechar com a tradução do método para o software.")
 
 # ============================================ 6. METODOLOGIA ===================
 s = slide(); bg(s, WHITE)
-title_bar(s, "Metodologia", "Arquitetura da plataforma e instrumento")
+title_bar(s, "Metodologia", "Artefato + estudo de caso em duas partes")
 bullets(s, [
     "Pesquisa aplicada/tecnológica: desenvolvimento de artefato + estudo de "
-    "caso com aplicação piloto.",
-    "Três decisões de arquitetura: custo zero · sem instalação · anonimato "
-    "por construção (LGPD) — sem nome, sem dados que identifiquem pessoas ou "
-    "a organização estudada.",
-    "Frontend: página web autocontida (abre no navegador do celular). "
-    "Backend: Google Apps Script + Sheets como repositório único.",
-    "Instrumento: 10 afirmativas positivas, escala Likert 1–5; média por "
-    "dimensão classificada em três faixas (baixo ≥ 3,8 · médio 2,8–3,8 · "
-    "alto < 2,8).",
+    "caso em organização do setor elétrico (anonimizada).",
+    "Parte documental: ocorrências históricas anonimizadas reinvestigadas com "
+    "o roteiro de 3 níveis — comparação com a análise original.",
+    "Parte de campo: piloto com as equipes registrando novas ocorrências e "
+    "condições inseguras no local, pelo celular.",
+    "Arquitetura: custo zero · sem instalação · página web autocontida + "
+    "backend gratuito em nuvem; dados tratados de forma agregada (LGPD).",
 ], height=Inches(3.4))
-notes(s, "Explicar por que Sheets/Apps Script: gratuito e replicável. Explicar "
-         "os pontos de corte como julgamento técnico conservador, a calibrar "
-         "com histórico.")
+notes(s, "Destacar o desenho em duas partes: o retrospectivo compara "
+         "profundidade causal; o piloto mede reporte e tempo de registro. "
+         "Anonimato: sem nomes, datas exatas ou locais.")
 
-# ============================================ 7. A PLATAFORMA (4 MÓDULOS) ======
+# ============================================ 7. O SISTEMA (MÓDULOS) ===========
 s = slide(); bg(s, PAPER)
-title_bar(s, "A plataforma", "Uma base de dados, quatro módulos de SST")
+title_bar(s, "O sistema", "Módulo central + três módulos integrados")
 mods = [
-    ("MÓDULO 1", "Riscos psicossociais", "NR-1 · ISO 45003"),
-    ("MÓDULO 2", "APR / PT digital", "NR-10 · NR-35 (distribuição)"),
-    ("MÓDULO 3", "Ergonomia (AEP)", "NR-17"),
-    ("MÓDULO 4", "Acidentes e near-miss", "NR-1 · árvore de causas"),
+    ("CENTRAL", "Acidentes e quase acidentes", "NR-1 · NBR 14280 · árvore de causas"),
+    ("MÓDULO 2", "Permissão de trabalho", "NR-10 · NR-35 (distribuição)"),
+    ("MÓDULO 3", "Riscos psicossociais", "NR-1 · fatores humanos"),
+    ("MÓDULO 4", "Ergonomia (AEP)", "NR-17"),
 ]
 cw, gap = Inches(2.95), Inches(0.25)
 x0 = Inches(0.7); y0 = Inches(2.1)
@@ -254,87 +252,101 @@ for i, (num, tit, sub) in enumerate(mods):
              bold=True, font="Consolas", space_after=8)
     set_para(tf.add_paragraph(), num, 11, GOLD, bold=True, font="Consolas",
              space_after=2)
-    set_para(tf.add_paragraph(), tit, 18, NAVY, bold=True, font="Georgia",
+    set_para(tf.add_paragraph(), tit, 17, NAVY, bold=True, font="Georgia",
              space_after=6)
-    set_para(tf.add_paragraph(), sub, 13, SLATE)
-notes(s, "Este é o coração da contribuição: a mesma base de dados vira um "
-         "'inventário de riscos vivo', alimentado por 4 processos operacionais. "
-         "Os quatro módulos estão implementados e funcionais.")
+    set_para(tf.add_paragraph(), sub, 12, SLATE)
+notes(s, "O módulo de acidentes é o coração do TCC; os demais alimentam a "
+         "mesma base — dá para cruzar ocorrência × permissão emitida × "
+         "sinalização psicossocial do setor.")
 
-# ============================================ 8. MÓDULO 1 — FLUXO + TELAS ======
+# ============================================ 8. MÓDULO CENTRAL — FLUXO ========
 s = slide(); bg(s, WHITE)
-title_bar(s, "Módulo 1 em detalhe", "Da resposta anônima ao texto do IRO — sem tabulação manual")
-pic_card(s, os.path.join(IMG, "shot_form.png"), Inches(0.7), Inches(1.9), Inches(6.0))
-pic_card(s, os.path.join(IMG, "shot_sobre.png"), Inches(6.9), Inches(1.9), Inches(5.8))
-notes(s, "Demonstrar o fluxo: trabalhador responde no celular (anônimo) → "
-         "painel classifica por dimensão → app gera o parágrafo do IRO pronto "
-         "para colar no PGR. Se possível, fazer uma demo ao vivo aqui.")
+title_bar(s, "O módulo central em detalhe",
+          "Registro no local → 3 níveis de causas → ações e indicadores")
+pic_card(s, os.path.join(IMG, "shot_acidentes.png"), Inches(0.7), Inches(1.9), Inches(6.0))
+tb = box(s, Inches(7.1), Inches(1.9), Inches(5.6), Inches(4.6))
+tf = tb.text_frame; tf.word_wrap = True
+set_para(tf.paragraphs[0], "Fluxo da investigação", 16, NAVY, bold=True,
+         font="Georgia", space_after=8)
+for txt in [
+    "1. Registro em < 5 min: tipo, tarefa, descrição — alerta de CAT "
+    "automático quando aplicável.",
+    "2. Causas imediatas: o que produziu o dano na cena.",
+    "3. Causas subjacentes: o que na tarefa/posto tornou possível.",
+    "4. Causas básicas: o que na gestão/organização originou — inclui "
+    "fatores humanos (fadiga, sobrecarga).",
+    "5. Ações com responsável, prazo e status; indicadores automáticos "
+    "(razão QA/acidentes, TF/TG da NBR 14280).",
+]:
+    set_para(tf.add_paragraph(), txt, 13, SLATE, space_after=6)
+notes(s, "Ponto de venda técnico: o formulário NÃO permite concluir só com "
+         "causas imediatas — é o método da árvore traduzido em software. "
+         "Se possível, demo ao vivo aqui.")
 
-# ============================================ 9. MÓDULOS 2–4 — TELAS ===========
+# ============================================ 9. MÓDULOS COMPLEMENTARES ========
 s = slide(); bg(s, WHITE)
-title_bar(s, "Módulos 2 a 4", "Permissão de trabalho, ergonomia e acidentes")
+title_bar(s, "Módulos integrados", "Permissão de trabalho, psicossocial e ergonomia")
 pic_card(s, os.path.join(IMG, "shot_apr.png"), Inches(0.6), Inches(1.9), Inches(4.0))
-pic_card(s, os.path.join(IMG, "shot_aep.png"), Inches(4.75), Inches(1.9), Inches(4.0))
-pic_card(s, os.path.join(IMG, "shot_acidentes.png"), Inches(8.9), Inches(1.9), Inches(3.7))
+pic_card(s, os.path.join(IMG, "shot_form.png"), Inches(4.75), Inches(1.9), Inches(4.0))
+pic_card(s, os.path.join(IMG, "shot_aep.png"), Inches(8.9), Inches(1.9), Inches(3.7))
 tb = box(s, Inches(0.6), Inches(6.5), Inches(12), Inches(0.7))
 set_para(tb.text_frame.paragraphs[0],
-         "M2: checklist NR-10/35, geolocalização e assinatura digital  ·  "
-         "M3: AEP em 5 blocos com parecer  ·  M4: árvore de causas e CAT",
-         13, SLATE, align=PP_ALIGN.CENTER)
-notes(s, "Passar rápido: mostrar que a plataforma cobre o campo (APR com "
-         "assinatura e GPS), a ergonomia (AEP com parecer automático) e a "
-         "investigação de acidentes com árvore de causas em 3 níveis.")
+         "PT: checklist NR-10/35, geolocalização e assinatura  ·  "
+         "Psicossocial: 10 itens anônimos, 6 dimensões  ·  AEP: 5 blocos com "
+         "parecer", 13, SLATE, align=PP_ALIGN.CENTER)
+notes(s, "Passar rápido — a mensagem é integração: a mesma base de dados "
+         "permite cruzar ocorrências com permissões e com a sinalização "
+         "psicossocial (fatores humanos).")
 
 # ============================================ 10. RESULTADOS ===================
 s = slide(); bg(s, WHITE)
-title_bar(s, "Resultados", "Plataforma operacional + aplicação piloto")
+title_bar(s, "Resultados", "Sistema operacional + estudo de caso")
 bullets(s, [
-    "Plataforma implementada integralmente: 4 módulos operacionais, custo de "
-    "operação nulo.",
-    "Fluxo do Módulo 1 sem qualquer etapa manual de tabulação.",
-    "[PREENCHER: nº de respondentes, taxa de adesão e nota média / faixa de "
-    "risco por dimensão — inserir tabela e gráfico agregado, sem identificar a "
-    "organização].",
-    "[PREENCHER: transcrever o texto do IRO gerado pela plataforma no piloto, "
-    "como evidência do produto final].",
+    "Sistema implementado integralmente: registro, investigação em 3 níveis, "
+    "ações e indicadores — sem transcrição manual, custo de operação nulo.",
+    "[PREENCHER: parte documental — distribuição de causas por nível na "
+    "análise original × estruturada; 2–3 casos anonimizados].",
+    "[PREENCHER: piloto — volume por tipo, razão quase acidentes/acidentes, "
+    "tempo mediano evento–registro, ações no prazo; inserir gráficos].",
+    "[PREENCHER: revisões do IRO/plano de ação decorrentes, sem identificar "
+    "a organização].",
 ], height=Inches(3.6))
-notes(s, "Aqui entram os dados reais do piloto. NÃO inventar. Se o piloto "
-         "ainda não ocorreu na data da defesa, apresentar como resultado "
-         "esperado e mostrar o texto do IRO gerado com dados de demonstração.")
+notes(s, "Dados reais aqui — NÃO inventar. Se o piloto estiver em curso na "
+         "defesa, apresentar a parte documental como resultado principal e o "
+         "piloto como em andamento.")
 
 # ============================================ 11. DISCUSSÃO / LIMITAÇÕES =======
 s = slide(); bg(s, WHITE)
 title_bar(s, "Discussão e limitações", "O que os resultados indicam — e o que não")
 bullets(s, [
-    "A barreira à conformidade com a NR-1 é operacional, não conceitual: a "
-    "digitalização reduz o custo do ciclo a quase zero.",
-    "Ganhos alinhados à norma: anonimato, consistência da classificação e "
-    "rastreabilidade dos registros.",
-    ("Limitações: instrumento de triagem (10 itens), sem validação "
-     "psicométrica formal;", 1),
-    ("pontos de corte por julgamento técnico, a calibrar com histórico;", 1),
-    ("sem autenticação e sem segregação por empresa (uso comercial exige);", 1),
-    ("limites da camada gratuita do Sheets; amostra restrita a uma "
-     "organização.", 1),
+    "Se a investigação estruturada revelou mais causas básicas: o instrumento "
+    "condiciona a profundidade — confirma Binder & Almeida (1997).",
+    "Se o reporte de quase acidentes cresceu: a subnotificação era atrito de "
+    "processo — o sistema captura a base da pirâmide (Heinrich; Bird).",
+    "Fatores humanos entre as causas básicas articulam acidentes e gestão "
+    "psicossocial da NR-1 — faces do mesmo sistema.",
+    ("Limitações: roteiro em 3 níveis é simplificação da árvore completa;", 1),
+    ("qualidade dos registros históricos; piloto curto em uma organização;", 1),
+    ("sem autenticação/segregação por empresa; limites da camada gratuita.", 1),
 ])
-notes(s, "Mostrar maturidade reconhecendo limites — a banca valoriza. "
-         "Enquadrar o instrumento como triagem (screening), não diagnóstico.")
+notes(s, "Reconhecer limites com maturidade — a banca valoriza. O roteiro de "
+         "3 níveis é operacionalização, não o diagrama completo do método.")
 
 # ============================================ 12. CONCLUSÃO ====================
 s = slide(); bg(s, WHITE)
 title_bar(s, "Conclusão", "Contribuição e trabalhos futuros")
 bullets(s, [
-    "A digitalização viabiliza o cumprimento da NR-1 mesmo com equipes de SST "
-    "enxutas, a custo praticamente nulo.",
-    "Conceito central: inventário de riscos 'vivo', alimentado pelos próprios "
-    "processos operacionais de SST.",
-    "Trabalhos futuros: validação psicométrica; calibração dos cortes; "
-    "autenticação e segregação por empresa; migração para banco de dados; "
-    "acompanhamento longitudinal da eficácia das medidas.",
+    "A digitalização do ciclo registro–investigação–ação torna exequível a "
+    "exigência da NR-1 de analisar ocorrências e realimentar o PGR — a custo "
+    "praticamente nulo.",
+    "Deslocamento essencial: da culpabilização individual para os fatores "
+    "organizacionais — com rastreabilidade de auditoria.",
+    "Trabalhos futuros: diagrama completo da árvore no software; autenticação "
+    "e segregação por organização; leitura longitudinal dos indicadores; "
+    "cruzamento ocorrências × permissões × psicossocial.",
 ])
-notes(s, "Fechar reafirmando a contribuição prática e a visão de plataforma. "
-         "Deixar gancho para os trabalhos futuros — mostra que o projeto tem "
-         "continuidade.")
+notes(s, "Fechar reafirmando: método consolidado + ferramenta acessível = "
+         "prevenção que aprende com cada evento. Gancho de continuidade.")
 
 # ============================================ 13. ENCERRAMENTO =================
 s = slide(); bg(s, NAVY)
@@ -347,13 +359,12 @@ set_para(tf.add_paragraph(),
          "Rodrigo Zambon  ·  [PREENCHER: e-mail]", 18, GOLD, bold=True,
          space_after=4)
 set_para(tf.add_paragraph(),
-         "Psike — plataforma de gestão de riscos psicossociais (NR-1)",
+         "Psike — investigação digital de acidentes pela árvore de causas (NR-1)",
          15, RGBColor(0xC7,0xCE,0xDB), space_after=10)
 set_para(tf.add_paragraph(), "Agradecimento: CERPRO", 13,
          RGBColor(0xAE,0xB8,0xC9))
-notes(s, "Agradecer à banca, à supervisão da monografia e à CERPRO. Sinalizar "
-         "disponibilidade para a arguição. Ter o app aberto para eventual "
-         "demonstração ao vivo.")
+notes(s, "Agradecer à banca, à supervisão da monografia e à CERPRO. Ter o "
+         "app aberto para eventual demonstração ao vivo.")
 
 OUT = os.path.join(os.path.dirname(__file__), "Apresentacao_Banca_Psike.pptx")
 prs.save(OUT)
