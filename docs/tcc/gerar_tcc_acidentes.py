@@ -478,9 +478,8 @@ h1(doc, "1 Introdução")
 body(doc, "Os acidentes do trabalho permanecem entre os principais problemas de "
      "saúde pública e de gestão nas organizações brasileiras. Os registros "
      "oficiais do Anuário Estatístico de Acidentes do Trabalho contabilizam "
-     "[PREENCHER: número de acidentes registrados no AEAT mais recente] "
-     "ocorrências no ano-base [PREENCHER: ano] (Brasil, [PREENCHER: ano da "
-     "edição]), número que subestima a realidade, pois os eventos sem "
+     "732.751 acidentes do trabalho no ano-base 2023, alta de cerca de 12% "
+     "em relação a 2022 (Brasil, 2024a), número que subestima a realidade, pois os eventos sem "
      "afastamento e os quase acidentes raramente chegam às estatísticas "
      "(Almeida, 2006).")
 body(doc, "O risco elétrico agrava esse quadro. O anuário da Associação "
@@ -497,7 +496,7 @@ body(doc, "A Norma Regulamentadora nº 1 (NR-1), na redação vigente, insere a 
      "(GRO): o empregador deve analisar os acidentes e as doenças relacionadas "
      "ao trabalho, identificar suas causas e utilizar os resultados na revisão "
      "do levantamento de perigos e do Programa de Gerenciamento de Riscos (PGR) "
-     "(Brasil, 2024). A obrigação, portanto, não termina na emissão da "
+     "(Brasil, 2024b). A obrigação, portanto, não termina na emissão da "
      "Comunicação de Acidente de Trabalho (CAT): exige investigação com método, "
      "registro rastreável e realimentação do inventário de riscos.")
 body(doc, "Na prática, porém, esse ciclo é frágil: o registro é feito em papel, "
@@ -541,7 +540,7 @@ body(doc, "A escolha do tema decorre da vivência profissional do autor em "
      "evento — e cada quase acidente — representa uma oportunidade de "
      "aprendizado cujo desperdício tem custo potencial em vidas.")
 body(doc, "Há também uma lacuna prática. A NR-1 obriga a análise de acidentes "
-     "como insumo do GRO (Brasil, 2024), e o método da árvore de causas está "
+     "como insumo do GRO (Brasil, 2024b), e o método da árvore de causas está "
      "consolidado na literatura brasileira desde a década de 1990 (Binder; "
      "Monteau; Almeida, 1995), mas faltam ferramentas digitais acessíveis que o "
      "levem ao campo: soluções comerciais de gestão de ocorrências têm custo "
@@ -688,7 +687,7 @@ body(doc, "A investigação que chega às causas básicas encontra, com "
      "de tempo, sobreaviso, fadiga e estados de esgotamento que degradam a "
      "atenção e a tomada de decisão (Reason, 1997). A NR-1, na redação dada "
      "pela Portaria MTE nº 1.419/2024, passou a exigir a inclusão dos fatores "
-     "de risco psicossocial no GRO (Brasil, 2024) — exigência que conversa "
+     "de risco psicossocial no GRO (Brasil, 2024b) — exigência que conversa "
      "diretamente com a análise de acidentes, pois os mesmos fatores que "
      "adoecem contribuem para eventos agudos.")
 body(doc, "Entre os desfechos do estresse ocupacional crônico, a síndrome de "
@@ -733,9 +732,8 @@ body(doc, "O arcabouço normativo articula a base legal, a camada "
      "do sistema desenvolvido. A Lei nº 8.213/1991 obriga a emissão da CAT até "
      "o primeiro dia útil seguinte à ocorrência e imediatamente em caso de "
      "óbito (Brasil, 1991); a NR-1 exige a análise de acidentes com "
-     "realimentação do PGR (Brasil, 2024); a NR-10 e a NR-35 regem as "
-     "atividades típicas da distribuição de energia (Brasil, 2019; Brasil, "
-     "[PREENCHER: ano da NR-35 consultada]).")
+     "realimentação do PGR (Brasil, 2024b); a NR-10 e a NR-35 regem as "
+     "atividades típicas da distribuição de energia (Brasil, 2019; 2022).")
 tabela(doc, "Quadro", "Marco normativo aplicável à análise de acidentes e "
        "funcionalidade correspondente do sistema",
        ["Instrumento", "Exigência principal", "Funcionalidade no sistema"],
@@ -750,7 +748,7 @@ tabela(doc, "Quadro", "Marco normativo aplicável à análise de acidentes e "
          "Registro de quase acidentes e condições inseguras"],
         ["NR-10 e NR-35", "Eletricidade e trabalho em altura",
          "Módulo de permissão de trabalho"]],
-       "Elaborado pelo autor com base em Brasil (1991; 2019; 2024) e "
+       "Elaborado pelo autor com base em Brasil (1991; 2019; 2024b) e "
        "Associação Brasileira de Normas Técnicas (2001; 2018).",
        widths=[4.5, 5.5, 6.0])
 
@@ -826,7 +824,7 @@ body(doc, "Em síntese, três conclusões da revisão orientam o desenvolvimento
      "culpabilizador (Binder; Almeida, 1997); o quase acidente é o insumo mais "
      "abundante do aprendizado, mas exige reporte fácil e imediato (Bird; "
      "Germain, 1985); e a exigência da NR-1 de analisar ocorrências e "
-     "realimentar o PGR demanda registro rastreável (Brasil, 2024). Esses "
+     "realimentar o PGR demanda registro rastreável (Brasil, 2024b). Esses "
      "pontos definem os requisitos do sistema apresentado na seção 3.")
 
 # ========================================================= 3 METODOLOGIA =====
@@ -967,7 +965,7 @@ body(doc, "A permissão de trabalho digital apresenta checklist específico por 
      "geolocalização e assinatura em tela (Brasil, 2019). A avaliação de "
      "fatores psicossociais aplica instrumento anônimo de dez itens em seis "
      "dimensões, com classificação automática, atendendo à exigência da NR-1 "
-     "(Brasil, 2024). A avaliação ergonômica preliminar emprega formulário de "
+     "(Brasil, 2024b). A avaliação ergonômica preliminar emprega formulário de "
      "doze itens em cinco blocos com parecer automático. A integração permite "
      "verificar, por exemplo, se um acidente ocorreu em serviço coberto por "
      "permissão e se o setor envolvido já sinalizava sobrecarga.")
@@ -1073,7 +1071,7 @@ body(doc, "As causas básicas consolidadas realimentam o inventário de riscos: 
      "cada fator organizacional recorrente identificado nas investigações é "
      "candidato a perigo a reavaliar no inventário, e as ações vinculadas "
      "compõem o plano de ação do PGR com responsáveis e prazos — o ciclo que a "
-     "NR-1 exige (Brasil, 2024). [PREENCHER: descrever as revisões do "
+     "NR-1 exige (Brasil, 2024b). [PREENCHER: descrever as revisões do "
      "inventário e o plano de ação efetivamente decorrentes do estudo, sem "
      "identificar a organização.]")
 
@@ -1114,8 +1112,8 @@ REFS = [
     "ACIDENTES fatais com a rede elétrica caem 8% em 2023, aponta Abradee. "
     "**Agência Brasil**, Brasília, DF, jul. 2024. Disponível em: "
     "https://agenciabrasil.ebc.com.br/geral/noticia/2024-07/acidentes-fatais-"
-    "com-rede-eletrica-caem-8-em-2023-aponta-abradee. Acesso em: [PREENCHER: "
-    "data].",
+    "com-rede-eletrica-caem-8-em-2023-aponta-abradee. Acesso em: 8 "
+    "out. 2026.",
     "ALMEIDA, I. M. Trajetória da análise de acidentes: o paradigma "
     "tradicional e os primórdios da ampliação da análise. **Interface**: "
     "comunicação, saúde, educação, Botucatu, v. 10, n. 19, p. 185-202, 2006. "
@@ -1146,16 +1144,16 @@ REFS = [
     "Dados Pessoais (LGPD). **Diário Oficial da União**: seção 1, Brasília, "
     "DF, 15 ago. 2018.",
     "BRASIL. Ministério da Previdência Social. **Anuário estatístico de "
-    "acidentes do trabalho**: AEAT [PREENCHER: ano-base]. Brasília, DF: MPS, "
-    "[PREENCHER: ano]. Disponível em: [PREENCHER: URL]. Acesso em: "
+    "acidentes do trabalho**: AEAT 2023. Brasília, DF: MPS, 2024a. Disponível em: [PREENCHER: URL]. Acesso em: "
     "[PREENCHER: data].",
     "BRASIL. Ministério do Trabalho e Emprego. **NR-1**: disposições gerais e "
     "gerenciamento de riscos ocupacionais. Redação dada pela Portaria MTE nº "
-    "1.419, de 27 de agosto de 2024. Brasília, DF: MTE, 2024.",
+    "1.419, de 27 de agosto de 2024. Brasília, DF: MTE, 2024b.",
     "BRASIL. Ministério do Trabalho e Emprego. **NR-10**: segurança em "
     "instalações e serviços em eletricidade. Brasília, DF: MTE, 2019.",
-    "BRASIL. Ministério do Trabalho e Emprego. **NR-35**: trabalho em altura. "
-    "Brasília, DF: MTE, [PREENCHER: ano da redação consultada].",
+    "BRASIL. Ministério do Trabalho e Previdência. **NR-35**: trabalho em "
+    "altura. Redação dada pela Portaria MTP nº 4.218, de 20 de dezembro de "
+    "2022. Brasília, DF: MTP, 2022.",
     "HEINRICH, H. W. **Industrial accident prevention**: a scientific "
     "approach. New York: McGraw-Hill, 1931.",
     "HOLLNAGEL, E. **Safety-I and Safety-II**: the past and future of safety "
@@ -1166,8 +1164,8 @@ REFS = [
     "Doenças, 11ª revisão: QD85 burn-out. Genebra: OMS, 2019.",
     "PORTO, M. F. S. Prevention, social emancipation, and paradigmatic "
     "transition: a 40-year interdisciplinary Brazilian trajectory on accidents "
-    "and disasters. **Cadernos de Saúde Pública**, Rio de Janeiro, 2024. "
-    "[PREENCHER: conferir volume, número e DOI no PubMed, PMID 38775613].",
+    "and disasters. **Cadernos de Saúde Pública**, Rio de Janeiro, v. 40, n. 5, e00169123, "
+    "2024. DOI: 10.1590/0102-311XPT169123.",
     "REASON, J. **Human error**. Cambridge: Cambridge University Press, 1990.",
     "REASON, J. **Managing the risks of organizational accidents**. "
     "Aldershot: Ashgate, 1997.",
@@ -1176,8 +1174,8 @@ REFS = [
     "**Revista de Saúde Pública**, São Paulo, v. 44, n. 4, p. 710-717, 2010.",
     "TREML, M. F. Q. et al. Burnout syndrome in Brazil (2014–2024): regional "
     "variations and temporal trends in an epidemiological study. **Revista "
-    "Brasileira de Medicina do Trabalho**, 2025. [PREENCHER: conferir volume, "
-    "número, páginas e DOI].",
+    "Brasileira de Medicina do Trabalho**, São Paulo, v. 23, n. 3, "
+    "e220251479, 2025. DOI: 10.47626/1679-4435-2025-1479.",
     "UNIVERSIDADE DE SÃO PAULO. Agência de Bibliotecas e Coleções Digitais. "
     "**Diretrizes para apresentação de dissertações e teses da USP**: parte I "
     "(ABNT). 5. ed. São Paulo: ABCD/USP, 2024. DOI: 10.11606/9786598386221.",
