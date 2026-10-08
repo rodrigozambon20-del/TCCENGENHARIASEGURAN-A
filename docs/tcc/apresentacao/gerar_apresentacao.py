@@ -151,7 +151,7 @@ bullets(s, [
     "associa diretamente à recorrência dos eventos (Binder; Almeida, 1997; "
     "Almeida, 2006).",
     ("Setor elétrico: 2.089 acidentes de origem elétrica em 2023, 781 óbitos "
-     "(Abracopel, 2024); 250 mortes na rede de distribuição (Abradee, 2024).", 1),
+     "(Abracopel, 2024); 250 mortes na rede de distribuição (Acidentes [...], 2024).", 1),
     ("Eventos raros e graves ⇒ o quase acidente é o insumo mais abundante do "
      "aprendizado — se for reportado.", 1),
 ])
