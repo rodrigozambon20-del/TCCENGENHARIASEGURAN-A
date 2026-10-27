@@ -1,5 +1,7 @@
 # Proposta de tema — poda de árvores junto à rede (TEMA ESCOLHIDO)
 
+> **Substituída em 27/10/2026 pela proposta da fibra/cabos de telecom (PROPOSTA_TEMA_FIBRA.md).** Mantida como alternativa, com o material de campo em campo/.
+
 Decidido em 27/10/2026. Substitui as propostas de frota e de acidentes/árvore
 de causas, que ficam no repositório como alternativas.
 
