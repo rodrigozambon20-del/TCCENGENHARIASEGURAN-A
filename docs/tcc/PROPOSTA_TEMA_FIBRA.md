@@ -1,7 +1,8 @@
 # Proposta de tema — cabos de telecomunicações em postes (TEMA ESCOLHIDO)
 
 Decidido em 27/10/2026. Substitui a proposta da poda (mantida como alternativa).
-Tema a enviar a renata@gmirmusp.com.br até 03/11/2026 (rascunho no Gmail).
+**Tema registrado pela supervisão (Profa. Renata), por e-mail.**
+Próximo prazo: monografia em PDF no Moodle até 22/02/2027.
 
 ## Título provisório
 
@@ -32,3 +33,10 @@ primária, caixas de emenda a 2 m do poste); Resolução Conjunta ANEEL/Anatel
 nº 4/2014 (em vigor; nova resolução aprovada pela ANEEL em 12/2025, pendente
 em 10/2026); NR-10; NR-35; NR-1 (PGR); norma técnica de compartilhamento da
 distribuidora, se houver.
+
+## Material de campo
+
+- `campo_fibra/Roteiro_Campo_Fibra.docx` — preparação, medição do chão, protocolo por
+  poste, fichas F1–F5 e modelo de autorização.
+- `campo_fibra/Planilha_Dados_Fibra.xlsx` — compara altura e afastamento com os
+  limites da aba Referencia (editáveis) e calcula os totais (testada no LibreOffice).
