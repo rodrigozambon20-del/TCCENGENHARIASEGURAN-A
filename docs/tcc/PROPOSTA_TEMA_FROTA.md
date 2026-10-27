@@ -1,5 +1,7 @@
 # Proposta de tema — frota operacional em serviço
 
+> **Substituída em 27/10/2026 pela proposta de poda (PROPOSTA_TEMA_PODA.md).** Mantida como alternativa.
+
 Status: aguardando aprovação da supervisão (tema deve ser enviado até 03/11/2026
 para renata@gmirmusp.com.br). Entrega da monografia: 22/02/2027 (Moodle, PDF).
 
